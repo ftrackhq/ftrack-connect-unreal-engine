@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 pintastudio
+# :copyright: Copyright (c) 2018 Pinta Studios
 
 import getpass
 import logging

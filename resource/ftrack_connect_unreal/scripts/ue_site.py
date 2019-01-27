@@ -1,5 +1,6 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 pintastudio
+# :copyright: Copyright (c) 2018 Pinta Studios
+
 import os
 os.sys.path.append( os.path.abspath(
                         os.path.join(
@@ -24,6 +25,7 @@ import ftrack_connect.config
 from ftrack_connect_unreal.connector import Connector
 from ftrack_connect_unreal.ui.asset_manager_unreal import FtrackAssetManagerDialog
 from ftrack_connect.ui.widget.import_asset import FtrackImportAssetDialog
+from ftrack_connect_unreal.ui.info import FtrackUnrealInfoDialog
 from ftrack_connect_unreal.ui.tasks import FtrackTasksDialog
 
 from QtExt.QtGui import QApplication
@@ -45,6 +47,7 @@ dialogs = [
 
     (FtrackAssetManagerDialog, 'Asset manager'),
 
+    (FtrackUnrealInfoDialog, 'Info'),
     (FtrackTasksDialog, 'Tasks')
 ]
 
@@ -59,13 +62,13 @@ def ue_exception(_type, value, back):
     for line in tb_lines:
         ue.log_error(line)
 
+
 def QApplicationInit():
     os.sys.excepthook = ue_exception
 
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
-        #print 'DEBUG: '+ os.path.dirname(__file__)
         app.setWindowIcon(QtGui.QIcon(os.path.dirname(__file__)+'/UE4Ftrack.ico'))
     else:
         print("App already running.")
@@ -77,20 +80,18 @@ def open_dialog(dialog_class):
 
     dialog_name = dialog_class
 
-    if dialog_name ==FtrackImportAssetDialog and dialog_name in created_dialogs:
-
+    if dialog_name == FtrackImportAssetDialog and dialog_name in created_dialogs:
         created_dialogs[dialog_name].deleteLater()
         created_dialogs[dialog_name]=None
         del created_dialogs[dialog_name]
 
-
     if dialog_name not in created_dialogs:
         ftrack_dialog = dialog_class(connector=connector)
-
         created_dialogs[dialog_name] = ftrack_dialog
 
     if created_dialogs[dialog_name]!=None:
         created_dialogs[dialog_name].show()
+
 
 def open_menu(menu):
     '''this generates the menu entries'''
@@ -104,35 +105,36 @@ def open_menu(menu):
 
     menu.end_section()
 
+
 def loadAndInit():
     '''Load and Init the unreal plugin, build the widgets and set the menu'''
     # Load the ftrack unreal plugin
+    #TODO:Need to implement unreal_ftrack Node here by Hao
+
     # Create new connector and register the assets
-    
     connector.registerAssets()
 
     ue.add_menu_bar_extension('Ftrack', open_menu)
-        
+
     # Check if ftrack struct exists in the project, if not, create a new one.
 
-    bp = ue.find_object('ftrackNodeStruct')
+    try:
+        ftrackNodeBP = ue.get_package_filename('/Game/Data/ftrackNodeStruct')
+    except:
+        ftrackNodeBP = False
+    if not ftrackNodeBP:
+        ftrackNodeftrackNodeBP = ue.create_blueprint(PrimaryDataAsset, '/Game/Data/ftrackNodeStruct')
 
-    if not bp:
-        bp = ue.create_blueprint(PrimaryDataAsset, '/Game/Data/ftrackNodeStruct')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetVersion', 'integer')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetId', 'string')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetPath', 'string')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetTake', 'name')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetType', 'string')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetComponentId', 'string')
+        ue.blueprint_add_member_variable(ftrackNodeBP, 'assetLink', 'string')
 
-        ue.blueprint_add_member_variable(bp, 'assetVersion', 'integer')
-        ue.blueprint_add_member_variable(bp, 'assetId', 'string')
-        ue.blueprint_add_member_variable(bp, 'assetPath', 'string')
-        ue.blueprint_add_member_variable(bp, 'assetTake', 'name')
-        ue.blueprint_add_member_variable(bp, 'assetType', 'string')
-        ue.blueprint_add_member_variable(bp, 'assetComponentId', 'string')
-        ue.blueprint_add_member_variable(bp, 'assetLink', 'string')
-
-        ue.compile_blueprint(bp)
-
-        bp.save_package()
-
-
+        ue.compile_blueprint(ftrackNodeBP)
+        ftrackNodeBP.save_package()
 
 
 def handle_scan_result(result, scanned_ftrack_nodes):
@@ -177,7 +179,6 @@ if not Connector.batch():
     
     refAssetManager()
     loadAndInit()
-
 
 
 ftrack_connect.config.configure_logging(

@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 pintastudio
+# :copyright: Copyright (c) 2018 Pinta Studios
 
 import os
 import copy
@@ -10,7 +10,7 @@ import ftrack_api
 from PySide.QtGui import QMessageBox
 
 import unrealcon
-from ftrackUnrealPlugin import ftrackAssetNode
+#from ftrackUnrealPlugin import ftrackAssetNode
 
 from ftrack_connect.connector import (
     FTAssetHandlerInstance,
@@ -27,6 +27,34 @@ class GenericAsset(FTAssetType):
         super(GenericAsset, self).__init__()
         self.importAssetBool = False
         self.referenceAssetBool = False
+
+    def importAsset(self, iAObj=None):
+        '''Import asset defined in *iAObj*'''
+        from unreal_engine.classes import PyFbxFactory
+
+        fbx_factory = PyFbxFactory()
+        fbx_factory.ImportUI.bImportMesh = iAObj.options['ImportMesh']
+        fbx_factory.ImportUI.bImportMaterials = iAObj.options['ImportMaterial']
+        fbx_factory.ImportUI.bImportAnimations = False
+        fbx_factory.ImportUI.bCreatePhysicsAsset = False
+
+        fbx_path = iAObj.filePath
+        import_path = '/Game/' + iAObj.options['ImportFolder']
+
+        uobject_import = fbx_factory.factory_import_object(fbx_path, import_path)
+
+        self.name_import = import_path + '/' + uobject_import.get_name() + '.' + uobject_import.get_name()
+
+        try:
+            self.linkToFtrackNode(iAObj)
+        except Exception as error:
+            print error
+
+        # return 'Imported ' + iAObj.assetType + ' asset'
+
+    def publishAsset(self, iAObj=None):
+        '''Publish the asset defined by the provided *iAObj*.'''
+        pass
 
     def changeVersion(self, iAObj=None, applicationObject=None):
         '''Change the version of the asset defined in *iAObj*
@@ -124,7 +152,7 @@ class RigAsset(GenericAsset):
         char_name = ftrack_asset_build.get('name')
         char_name = upperFirst(char_name)
 
-        # import path in UE
+        # import rig path in UE
         ftrack_node_name='RIG_'+char_name+'_AST_ftrackNode'
         import_path = '/Game/Asset/Actor/' + char_name
 
@@ -323,8 +351,6 @@ class AnimationAsset(GenericAsset):
 
             uobject_import = fbx_factory.factory_import_object(fbx_path, import_path)
 
-            uobject_import.interpolation=1
-
 
             #Rename animation asset
 
@@ -390,12 +416,12 @@ class GeometryAsset(GenericAsset):
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
 
         ftrack_asset_build = ftrack_asset_version.getParent().getParent()
-        char_name = ftrack_asset_build.get('name')
-        char_name = upperFirst(char_name)
+        geo_name = ftrack_asset_build.get('name')
+        geo_name = upperFirst(geo_name)
 
-        import_path = '/Game/Asset/Geo/' + char_name
+        import_path = '/Game/Asset/Geo/' + geo_name
 
-        ftrack_node_name = 'GEO_' + char_name + '_AST_ftrackNode'
+        ftrack_node_name = 'GEO_' + geo_name + '_AST_ftrackNode'
 
         ftrack_old_node = None
 
@@ -428,7 +454,7 @@ class GeometryAsset(GenericAsset):
 
             uobject_import_name=uobject_import.get_path_name()
 
-            anim_name = 'S_' + char_name
+            anim_name = 'S_' + geo_name
             uobject_package_name = ue.get_path(uobject_import_name) + '/' + anim_name
 
             ue.rename_asset(uobject_import_name, uobject_package_name)
@@ -448,7 +474,7 @@ class GeometryAsset(GenericAsset):
 
 def registerAssetTypes():
     assetHandler = FTAssetHandlerInstance.instance()
-    assetHandler.registerAssetType(name='rig', cls=RigAsset)
+    assetHandler.registerAssetType(name="rig", cls=RigAsset)
     assetHandler.registerAssetType(name="anim", cls=AnimationAsset)
     assetHandler.registerAssetType(name="geo", cls=GeometryAsset)
 

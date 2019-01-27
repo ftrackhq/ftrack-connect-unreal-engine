@@ -1,46 +1,42 @@
-# ftrack-connect-unreal
-Unreal Engine 4 integration with ftrack.
+Ftrack Unreal Engine 4 Integration
+===========================
 
-Tested in Unreal Engine 4.19 and 4.20 within Window 10.
+Supported Platforms
+-------------------
+Currently supported on Windows 10.
+Has been built and tested through Unreal Engine 4.18 - 4.20.
+Compatible with ftrack-connect-package 0.7.2 - 1.1.0
+
+# Dependencies
+| Name | Version | Optional |
+| ---- | ------- | :------: |
+| UnrealEnginePython (https://github.com/20tab/UnrealEnginePython)        | latest version | built with Python 2.7.14 |
 
 # Installation
+#### 1. Setup ftrack_connect_unreal main module
 
-* Install UnrealEnginePython (https://github.com/20tab/UnrealEnginePython)
+Put 'ftrack_connect_unreal' from 'common.zip' folder into ftrack-connect-package's 'common.zip'.
+So you will have for exmaple: C:\Program Files (x86)\ftrack-connect-package-0.7.1\common.zip\ftrack_connect_unreal
 
-Make sure you have latest version installed.
+#### 2. Setup ftrack_connect_unreal resource
 
-* Copy contents of source folder to your ftrack-connect common folder.
+Copy contents from 'resource' folder to ftrack-connect-package's 'resource' folder.
 
-Create a folder named 'ftrack_connect_unreal' under ftrack-connect 'common' folder. Then copy 'source' folder's contents to it.
-The default path is: C:\Program Files (x86)\ftrack-connect-package-0.7.1\common\ftrack_connect_unreal
+#### 3. Setup Ftrack Unreal Engine Startup
 
-* Copy hook file to your ftrack-connect hook folder.
-
-Copy resource/hook/ftrack_connect_unreal_hook.py to your ftrack-connect 'hook' folder.
-
-The default path is: C:\Program Files (x86)\ftrack-connect-package-0.7.1\resource\hook
-
-* Copy scripts to your ftrack-connect resource folder.
-
-Copy resource/scripts to your ftrack-connect 'resource' folder.
-
-Create a folder named 'ftrack_connect_unreal' under ftrack-connect's resource folder. Then copy resource/scripts to it.
-
-* Setup DefaultEngine.ini for your Unreal project
-
-Setup python path in your Unreal project DefaultEngine.ini, so ftrack plugin will be initialized when Unreal start.
+Set python script path in Unreal's engine config, so ftrack plugin will be initialized when Unreal launched.
 
 Add following code in DefaultEngine.ini:
 
 ```sh
 [Python]
-ScriptsPath = YOUR ftrack_connect_unreal/scripts PATH
+ScriptsPath = UNREAL-PYTHONSCRIPT-PATH
 ```
-By default, it should be like this:
+For example:
 
 ```
 [Python]
-ScriptsPath = "C:/Program Files (x86)/ftrack-connect-package-0.7.1/resource/track_connect_unreal/scripts"
+ScriptsPath = "C:/Program Files (x86)/ftrack-connect-package-0.7.1/resource/ftrack_connect_unreal/scripts"
 ```
 
 * Done!
