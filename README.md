@@ -1,5 +1,6 @@
 Unreal Engine 4 Ftrack Integration
 ===========================
+This is fairly brute-force way of ftrack-connect-unreal integration with Unreal Engine based off of ftrack-connect-package using UnrealEnginePython plugin
 
 Supported Platforms
 -------------------
@@ -11,7 +12,8 @@ Dependencies
 ------------
 | Name | Version | Optional |
 | ---- | ------- | :------: |
-| UnrealEnginePython (https://github.com/20tab/UnrealEnginePython)        | latest version | built with Python 2.7.14 |
+| Python                                                                  | 2.7.11+        |             x             |
+| UnrealEnginePython (https://github.com/20tab/UnrealEnginePython)        | latest version | built with Python 2.7.11+ |
 
 Installation
 ------------
@@ -42,4 +44,9 @@ For example:
 ScriptsPath = "C:/Program Files (x86)/ftrack-connect-package-0.7.1/resource/ftrack_connect_unreal/scripts"
 ```
 
-* Done!
+Done!
+------------
+* Launch ftrack connect and choose a project now you should see Unreal Engine's action icon. 
+* Launch Unreal Engine then Launch your project and you should see ftrack on your menu bar
+
+Caveat: all versions of Unreal Engine must be installed in the same directory otherwise ftrack won't find all of them
