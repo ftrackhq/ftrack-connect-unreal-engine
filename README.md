@@ -33,7 +33,7 @@ Installation
 
 Add following code in DefaultEngine.ini:
 
-```sh
+```
 [Python]
 ScriptsPath = UNREAL-PYTHONSCRIPT-PATH
 ```

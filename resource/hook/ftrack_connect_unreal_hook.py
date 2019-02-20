@@ -2,22 +2,30 @@
 # :copyright: Copyright (c) 2018 Pinta Studios
 
 import getpass
-import logging
 import sys
 import pprint
-import os
+import logging
 import re
+import tempfile
+import os
 import ast
 import ftrack
 import ftrack_connect.application
-import _winreg
 
 
-class UnrealAction(object):
-    '''Launch Unreal action.'''
+cwd = os.path.dirname(__file__)
+sources = os.path.abspath(os.path.join(cwd, '..', 'dependencies'))
+ftrack_connect_unreal_engine_resource_path = os.path.abspath(os.path.join(cwd, '..',  'resource'))
+sys.path.append(sources)
+
+import ftrack_connect_unreal_engine
+
+
+class LaunchApplicationAction(object):
+    '''Discover and launch unreal engine.'''
 
     # Unique action identifier.
-    identifier = 'my-Unreal-launch-action'
+    identifier = 'ftrack-connect-launch-unreal-engine'
 
     def __init__(self, applicationStore, launcher):
         '''Initialise action with *applicationStore* and *launcher*.
@@ -29,7 +37,7 @@ class UnrealAction(object):
         :class:`ftrack_connect.application.ApplicationLauncher`.
 
         '''
-        super(UnrealAction, self).__init__()
+        super(LaunchApplicationAction, self).__init__()
 
         self.logger = logging.getLogger(
             __name__ + '.' + self.__class__.__name__
@@ -41,7 +49,6 @@ class UnrealAction(object):
         if self.identifier is None:
             raise ValueError('The action must be given an identifier.')
 
-
     def is_valid_selection(self, selection):
         '''Return true if the selection is valid. Unreal can be launched only if the selection is Project'''
 
@@ -52,8 +59,6 @@ class UnrealAction(object):
             return False
 
         return True
-
-
 
     def register(self):
         '''Register discover actions on logged in user.'''
@@ -76,7 +81,6 @@ class UnrealAction(object):
             'topic=ftrack.connect.plugin.debug-information',
             self.get_version_information
         )
-
 
     def discover(self, event):
         '''Return available actions based on *event*.
@@ -139,8 +143,9 @@ class UnrealAction(object):
         '''Return version information.'''
         return dict(
             name='ftrack connect unreal engine',
-            version=''
+            version=ftrack_connect_unreal_engine.__version__
         )
+
 
 class ApplicationStore(ftrack_connect.application.ApplicationStore):
     '''Store used to find and keep track of available applications.'''
@@ -161,8 +166,6 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         document.close()
 
         return prefix
-
-
 
     def _discoverApplications(self):
         '''Return a list of applications that can be launched from this host.
@@ -188,10 +191,21 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 prefix = unreal_location
 
             unreal_version_expression = re.compile(
-				r'(?P<version>[\d.]+[\d.]+[\d.])'
-			)
-            
+                r'(?P<version>[\d.]+[\d.]+[\d.])'
+            )
+
             self.logger.info(prefix)
+
+            script_path = os.path.abspath(os.path.join(ftrack_connect_unreal_engine_resource_path, 'scripts'))
+            ini_file_content = '''[Python]\nScriptsPath = "{}"\n'''.format(script_path)
+
+            ini_temp_file_path =  os.path.abspath(
+                tempfile.NamedTemporaryFile(prefix='ftrack-unreal', suffix='.ini', delete=False).name
+            )
+            ini_temp_file = open(ini_temp_file_path, 'w')
+            ini_temp_file.write(ini_file_content)
+            ini_temp_file.close()
+            self.logger.info('ini: {}'.format(ini_temp_file))
 
             applications.extend(self._searchFilesystem(
                 expression=(
@@ -201,7 +215,8 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 versionExpression=unreal_version_expression,
                 label='Unreal Engine',
                 variant='{version}',
-                applicationIdentifier='Unreal_{version}'
+                applicationIdentifier='Unreal_{version}',
+                launchArguments=['-EDITORINI={0}'.format(ini_temp_file_path)]
                 ))
 
         self.logger.debug(
@@ -211,7 +226,6 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         )
 
         return applications
-
 
 class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
     '''Custom launcher to modify environment before launch.'''
@@ -230,29 +244,10 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         entity = context['selection'][0]
         project = ftrack.Project(entity['entityId'])
 
-
         # Set default task id and shot id for Unreal ftrack plugin to start, this is required although it is useless in Unreal.
         environment['FTRACK_TASKID'] = project.getAssetBuilds()[0].getId()
         
         environment['FTRACK_SHOTID'] = project.getAssetBuilds()[0].get('parent_id')
-
-        # Append or Prepend values to the environment.
-        # Note that if you assign manually you will overwrite any
-        # existing values on that variable.
-
-        # Add my custom path to the Unreal_SCRIPT_PATH.
-        environment = ftrack_connect.application.appendPath(
-            'path/to/my/custom/scripts',
-            'Unreal_SCRIPT_PATH',
-            environment
-        )
-
-        # Set an internal user id of some kind.
-        environment = ftrack_connect.application.appendPath(
-            'my-unique-user-id-123',
-            'STUDIO_SPECIFIC_USERID',
-            environment
-        )
 
         # Always return the environment at the end.
         return environment
@@ -277,5 +272,5 @@ def register(registry, **kw):
     )
 
     # Create action and register to respond to discover and launch actions.
-    action = UnrealAction(applicationStore, launcher)
+    action = LaunchApplicationAction(applicationStore, launcher)
     action.register()

@@ -21,7 +21,7 @@ RESOURCE_PATH = os.path.join(ROOT_PATH, 'resource')
 
 SOURCE_PATH = os.path.join(ROOT_PATH, 'source')
 
-README_PATH = os.path.join(ROOT_PATH, 'README.rst')
+README_PATH = os.path.join(ROOT_PATH, 'README.md')
 
 BUILD_PATH = os.path.join(ROOT_PATH, 'build')
 
@@ -148,13 +148,10 @@ setup(
         'lowdown >= 0.1.0, < 1'
     ],
     tests_require=[
-        'pytest >= 2.3.5, < 3'
+        'pytest >= 2.3.5, < 3',
     ],
     cmdclass={
         'test': PyTest,
         'build_plugin': BuildPlugin,
     },
-    dependency_links=[
-        'git+https://bitbucket.org/ftrack/qtext/get/0.2.1.zip#egg=QtExt-0.2.1'
-    ]
 )
