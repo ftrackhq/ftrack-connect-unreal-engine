@@ -138,7 +138,7 @@ class UnrealAction(object):
     def get_version_information(self, event):
         '''Return version information.'''
         return dict(
-            name='ftrack connect unreal',
+            name='ftrack connect unreal engine',
             version=''
         )
 
@@ -181,23 +181,22 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
             ))
 
         elif sys.platform == 'win32':
-            prefix = ['D:\\', 'Program Files.*']
+            prefix = ['C:\\', 'Program Files.*']
 
             unreal_location = self._checkUnrealLocation()
             if unreal_location:
                 prefix = unreal_location
 
-
             unreal_version_expression = re.compile(
 				r'(?P<version>[\d.]+[\d.]+[\d.])'
 			)
             
-            self.logger.info('Unreal version:\n{0}'.format(unreal_version_expression))
+            self.logger.info(prefix)
 
             applications.extend(self._searchFilesystem(
                 expression=(
                     prefix +
-                    ['UE+', 'Engine', 'Binaries', 'Win64', 'UE4Editor.exe']
+                    ['UE.+', 'Engine', 'Binaries', 'Win64', 'UE4Editor.exe']
                 ),
                 versionExpression=unreal_version_expression,
                 label='Unreal Engine',
