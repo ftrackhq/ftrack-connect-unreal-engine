@@ -194,19 +194,6 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 r'(?P<version>[\d.]+[\d.]+[\d.])'
             )
 
-            self.logger.info(prefix)
-
-            script_path = os.path.abspath(os.path.join(ftrack_connect_unreal_engine_resource_path, 'scripts'))
-            ini_file_content = '''[Python]\nScriptsPath = "{}"\n'''.format(script_path)
-
-            ini_temp_file_path =  os.path.abspath(
-                tempfile.NamedTemporaryFile(prefix='ftrack-unreal', suffix='.ini', delete=False).name
-            )
-            ini_temp_file = open(ini_temp_file_path, 'w')
-            ini_temp_file.write(ini_file_content)
-            ini_temp_file.close()
-            self.logger.info('ini: {}'.format(ini_temp_file))
-
             applications.extend(self._searchFilesystem(
                 expression=(
                     prefix +
@@ -216,7 +203,6 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 label='Unreal Engine',
                 variant='{version}',
                 applicationIdentifier='Unreal_{version}',
-                launchArguments=['-EDITORINI={0}'.format(ini_temp_file_path)]
                 ))
 
         self.logger.debug(
