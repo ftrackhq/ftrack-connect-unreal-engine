@@ -143,6 +143,7 @@ setup(
         '': 'source'
     },
     setup_requires=[
+        'qtext',
         'sphinx >= 1.2.2, < 2',
         'sphinx_rtd_theme >= 0.1.6, < 2',
         'lowdown >= 0.1.0, < 1'
@@ -154,4 +155,7 @@ setup(
         'test': PyTest,
         'build_plugin': BuildPlugin,
     },
+    dependency_links=[
+        'git+https://bitbucket.org/ftrack/qtext/get/0.2.1.zip#egg=QtExt-0.2.1'
+    ]
 )

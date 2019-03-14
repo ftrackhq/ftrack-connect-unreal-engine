@@ -6,7 +6,6 @@ import sys
 import pprint
 import logging
 import re
-import tempfile
 import os
 import ast
 import ftrack
@@ -100,11 +99,6 @@ class LaunchApplicationAction(object):
         ):
             return
 
-        selection = event['data'].get('selection', [])
-        entity = selection[0]
-        project = ftrack.Project(entity['entityId'])
-        ftrack_project_name = project.getName()
-
         items = []
         applications = self.applicationStore.applications
         applications = sorted(
@@ -180,7 +174,8 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                     'Unreal*', 'Unreal.app'
                 ],
                 label='Unreal {version}',
-                applicationIdentifier='Unreal_{version}'
+                applicationIdentifier='Unreal_{version}',
+                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
             ))
 
         elif sys.platform == 'win32':
@@ -203,6 +198,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 label='Unreal Engine',
                 variant='{version}',
                 applicationIdentifier='Unreal_{version}',
+                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
                 ))
 
         self.logger.debug(
