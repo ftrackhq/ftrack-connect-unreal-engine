@@ -224,12 +224,7 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         )._getApplicationEnvironment(application, context)
 
         entity = context['selection'][0]
-        project = ftrack.Project(entity['entityId'])
-
-        # Set default task id and shot id for Unreal ftrack plugin to start, this is required although it is useless in Unreal.
-        environment['FTRACK_TASKID'] = project.getAssetBuilds()[0].getId()
-        
-        environment['FTRACK_SHOTID'] = project.getAssetBuilds()[0].get('parent_id')
+        environment['FTRACK_CONTEXTID'] = entity['entityId']
 
         # Always return the environment at the end.
         return environment
