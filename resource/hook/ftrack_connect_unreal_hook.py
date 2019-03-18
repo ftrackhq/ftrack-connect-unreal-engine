@@ -2,19 +2,19 @@
 # :copyright: Copyright (c) 2018 Pinta Studios
 
 import getpass
-import sys
-import pprint
 import logging
-import re
 import os
-import ast
+import pprint
+import re
+import sys
+
 import ftrack
 import ftrack_connect.application
 
-
 cwd = os.path.dirname(__file__)
 sources = os.path.abspath(os.path.join(cwd, '..', 'dependencies'))
-ftrack_connect_unreal_engine_resource_path = os.path.abspath(os.path.join(cwd, '..',  'resource'))
+ftrack_connect_unreal_engine_resource_path = os.path.abspath(
+    os.path.join(cwd, '..', 'resource'))
 sys.path.append(sources)
 
 import ftrack_connect_unreal_engine
@@ -49,7 +49,10 @@ class LaunchApplicationAction(object):
             raise ValueError('The action must be given an identifier.')
 
     def is_valid_selection(self, selection):
-        '''Return true if the selection is valid. Unreal can be launched only if the selection is Project'''
+        '''Return true if the selection is valid.
+
+        Unreal can be launched only if the selection is Project.
+        '''
 
         if (
             len(selection) != 1 or
@@ -132,7 +135,7 @@ class LaunchApplicationAction(object):
         return self.launcher.launch(
             applicationIdentifier, context
         )
-    
+
     def get_version_information(self, event):
         '''Return version information.'''
         return dict(
@@ -144,18 +147,21 @@ class LaunchApplicationAction(object):
 class ApplicationStore(ftrack_connect.application.ApplicationStore):
     '''Store used to find and keep track of available applications.'''
 
-
     def _checkUnrealLocation(self):
         ''' Return Unreal installation location by reading the data file'''
         prefix = None
 
-        document = open("C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat", "r+")
+        document = open(
+            "C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat",
+            "r+")
 
         context = document.read()
 
+        import ast
         for item in ast.literal_eval(context)['InstallationList']:
             if item['AppName'].find('UE_') == 0:
-                prefix = item['InstallLocation'].split('\\' + item['AppName'])[0].split('\\')
+                prefix = item['InstallLocation'].split(
+                    '\\' + item['AppName'])[0].split('\\')
 
         document.close()
 
@@ -167,14 +173,16 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         applications = []
 
         if sys.platform == 'darwin':
-            prefix = ['/', 'Applications']
-
+            prefix = ['/', 'Users', 'Shared', 'Epic Games']
             applications.extend(self._searchFilesystem(
                 expression=prefix + [
-                    'Unreal*', 'Unreal.app'
-                ],
-                label='Unreal {version}',
+                    'UE_.+', 'Engine', 'Binaries', 'Mac', 'UE4Editor.app'],
+                versionExpression=re.compile(
+                    r'(?P<version>[\d.]+[\d.]+[\d.])'
+                ),
                 applicationIdentifier='Unreal_{version}',
+                label='Unreal Engine',
+                variant='{version}',
                 icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
             ))
 
@@ -199,7 +207,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 variant='{version}',
                 applicationIdentifier='Unreal_{version}',
                 icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
-                ))
+            ))
 
         self.logger.debug(
             'Discovered applications:\n{0}'.format(
@@ -208,6 +216,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         )
 
         return applications
+
 
 class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
     '''Custom launcher to modify environment before launch.'''
