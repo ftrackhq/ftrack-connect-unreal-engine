@@ -3,21 +3,28 @@
 
 import getpass
 import logging
-import sys
-import pprint
 import os
+import pprint
 import re
-import ast
+import sys
+
 import ftrack
 import ftrack_connect.application
-import _winreg
+
+cwd = os.path.dirname(__file__)
+sources = os.path.abspath(os.path.join(cwd, '..', 'dependencies'))
+ftrack_connect_unreal_engine_resource_path = os.path.abspath(
+    os.path.join(cwd, '..', 'resource'))
+sys.path.append(sources)
+
+import ftrack_connect_unreal_engine
 
 
-class UnrealAction(object):
-    '''Launch Unreal action.'''
+class LaunchApplicationAction(object):
+    '''Discover and launch unreal engine.'''
 
     # Unique action identifier.
-    identifier = 'my-Unreal-launch-action'
+    identifier = 'ftrack-connect-launch-unreal-engine'
 
     def __init__(self, applicationStore, launcher):
         '''Initialise action with *applicationStore* and *launcher*.
@@ -29,7 +36,7 @@ class UnrealAction(object):
         :class:`ftrack_connect.application.ApplicationLauncher`.
 
         '''
-        super(UnrealAction, self).__init__()
+        super(LaunchApplicationAction, self).__init__()
 
         self.logger = logging.getLogger(
             __name__ + '.' + self.__class__.__name__
@@ -41,9 +48,11 @@ class UnrealAction(object):
         if self.identifier is None:
             raise ValueError('The action must be given an identifier.')
 
-
     def is_valid_selection(self, selection):
-        '''Return true if the selection is valid. Unreal can be launched only if the selection is Project'''
+        '''Return true if the selection is valid.
+
+        Unreal can be launched only if the selection is Project.
+        '''
 
         if (
             len(selection) != 1 or
@@ -52,8 +61,6 @@ class UnrealAction(object):
             return False
 
         return True
-
-
 
     def register(self):
         '''Register discover actions on logged in user.'''
@@ -77,7 +84,6 @@ class UnrealAction(object):
             self.get_version_information
         )
 
-
     def discover(self, event):
         '''Return available actions based on *event*.
 
@@ -95,11 +101,6 @@ class UnrealAction(object):
                 event['data'].get('selection', [])
         ):
             return
-
-        selection = event['data'].get('selection', [])
-        entity = selection[0]
-        project = ftrack.Project(entity['entityId'])
-        ftrack_project_name = project.getName()
 
         items = []
         applications = self.applicationStore.applications
@@ -134,35 +135,37 @@ class UnrealAction(object):
         return self.launcher.launch(
             applicationIdentifier, context
         )
-    
+
     def get_version_information(self, event):
         '''Return version information.'''
         return dict(
-            name='ftrack connect unreal',
-            version=''
+            name='ftrack connect unreal engine',
+            version=ftrack_connect_unreal_engine.__version__
         )
+
 
 class ApplicationStore(ftrack_connect.application.ApplicationStore):
     '''Store used to find and keep track of available applications.'''
-
 
     def _checkUnrealLocation(self):
         ''' Return Unreal installation location by reading the data file'''
         prefix = None
 
-        document = open("C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat", "r+")
+        document = open(
+            "C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat",
+            "r+")
 
         context = document.read()
 
+        import ast
         for item in ast.literal_eval(context)['InstallationList']:
             if item['AppName'].find('UE_') == 0:
-                prefix = item['InstallLocation'].split('\\' + item['AppName'])[0].split('\\')
+                prefix = item['InstallLocation'].split(
+                    '\\' + item['AppName'])[0].split('\\')
 
         document.close()
 
         return prefix
-
-
 
     def _discoverApplications(self):
         '''Return a list of applications that can be launched from this host.
@@ -170,40 +173,41 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         applications = []
 
         if sys.platform == 'darwin':
-            prefix = ['/', 'Applications']
-
+            prefix = ['/', 'Users', 'Shared', 'Epic Games']
             applications.extend(self._searchFilesystem(
                 expression=prefix + [
-                    'Unreal*', 'Unreal.app'
-                ],
-                label='Unreal {version}',
-                applicationIdentifier='Unreal_{version}'
+                    'UE_.+', 'Engine', 'Binaries', 'Mac', 'UE4Editor.app'],
+                versionExpression=re.compile(
+                    r'(?P<version>[\d.]+[\d.]+[\d.])'
+                ),
+                applicationIdentifier='Unreal_{version}',
+                label='Unreal Engine',
+                variant='{version}',
+                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
             ))
 
         elif sys.platform == 'win32':
-            prefix = ['D:\\', 'Program Files.*']
+            prefix = ['C:\\', 'Program Files.*']
 
             unreal_location = self._checkUnrealLocation()
             if unreal_location:
                 prefix = unreal_location
 
-
             unreal_version_expression = re.compile(
-				r'(?P<version>[\d.]+[\d.]+[\d.])'
-			)
-            
-            self.logger.info('Unreal version:\n{0}'.format(unreal_version_expression))
+                r'(?P<version>[\d.]+[\d.]+[\d.])'
+            )
 
             applications.extend(self._searchFilesystem(
                 expression=(
                     prefix +
-                    ['UE+', 'Engine', 'Binaries', 'Win64', 'UE4Editor.exe']
+                    ['UE.+', 'Engine', 'Binaries', 'Win64', 'UE4Editor.exe']
                 ),
                 versionExpression=unreal_version_expression,
                 label='Unreal Engine',
                 variant='{version}',
-                applicationIdentifier='Unreal_{version}'
-                ))
+                applicationIdentifier='Unreal_{version}',
+                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
+            ))
 
         self.logger.debug(
             'Discovered applications:\n{0}'.format(
@@ -229,31 +233,7 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         )._getApplicationEnvironment(application, context)
 
         entity = context['selection'][0]
-        project = ftrack.Project(entity['entityId'])
-
-
-        # Set default task id and shot id for Unreal ftrack plugin to start, this is required although it is useless in Unreal.
-        environment['FTRACK_TASKID'] = project.getAssetBuilds()[0].getId()
-        
-        environment['FTRACK_SHOTID'] = project.getAssetBuilds()[0].get('parent_id')
-
-        # Append or Prepend values to the environment.
-        # Note that if you assign manually you will overwrite any
-        # existing values on that variable.
-
-        # Add my custom path to the Unreal_SCRIPT_PATH.
-        environment = ftrack_connect.application.appendPath(
-            'path/to/my/custom/scripts',
-            'Unreal_SCRIPT_PATH',
-            environment
-        )
-
-        # Set an internal user id of some kind.
-        environment = ftrack_connect.application.appendPath(
-            'my-unique-user-id-123',
-            'STUDIO_SPECIFIC_USERID',
-            environment
-        )
+        environment['FTRACK_CONTEXTID'] = entity['entityId']
 
         # Always return the environment at the end.
         return environment
@@ -278,5 +258,5 @@ def register(registry, **kw):
     )
 
     # Create action and register to respond to discover and launch actions.
-    action = UnrealAction(applicationStore, launcher)
+    action = LaunchApplicationAction(applicationStore, launcher)
     action.register()
