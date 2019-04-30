@@ -19,7 +19,6 @@ sys.path.append(sources)
 
 import ftrack_connect_unreal_engine
 
-
 class LaunchApplicationAction(object):
     '''Discover and launch unreal engine.'''
 
@@ -54,10 +53,10 @@ class LaunchApplicationAction(object):
         Unreal can be launched only if the selection is Project.
         '''
 
-        if (
-            len(selection) != 1 or
-            selection[0]['entityType'] != 'show'
-        ):
+        entity = selection[0]
+        task = ftrack.Task(entity['entityId'])
+
+        if task.getObjectType() != 'Task':
             return False
 
         return True
@@ -131,6 +130,7 @@ class LaunchApplicationAction(object):
         )
 
         context = event['data'].copy()
+        context['source'] = event['source']#Martin to check doc :-) https://help.ftrack.com/developing-with-ftrack/key-concepts/events
 
         return self.launcher.launch(
             applicationIdentifier, context
@@ -232,8 +232,40 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
             ApplicationLauncher, self
         )._getApplicationEnvironment(application, context)
 
+
         entity = context['selection'][0]
         environment['FTRACK_CONTEXTID'] = entity['entityId']
+        environment['QT_PREFERRED_BINDING'] = 'PySide'
+        task = ftrack.Task(entity['entityId'])
+        environment['FTRACK_TASKID'] = task.getId()
+        environment['FTRACK_SHOTID'] = task.get('parent_id')
+
+        environment = ftrack_connect.application.appendPath(
+            sources,
+            'PYTHONPATH',
+            environment
+        )
+
+        #get absolute path of ftrack installation from executable
+        ftrack_installation_path = os.path.dirname(sys.executable)
+
+        self.logger.debug(
+            'sys executable:\n{0}'.format(
+                pprint.pformat(ftrack_installation_path)
+            )
+        )
+
+        environment = ftrack_connect.application.appendPath(
+            ftrack_installation_path,
+            'PYTHONPATH',
+            environment
+        )
+
+        environment = ftrack_connect.application.appendPath(
+            os.path.join(ftrack_installation_path, "library.zip"),
+            'PYTHONPATH',
+            environment
+        )
 
         # Always return the environment at the end.
         return environment

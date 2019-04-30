@@ -13,7 +13,7 @@ import signal
 
 import ftrack_connect.ui.theme
 
-import unreal_engine as ue
+import unreal as ue
 
 
 class Connector(maincon.Connector):
@@ -30,7 +30,8 @@ class Connector(maincon.Connector):
         '''Return the available assets in UE project, return the *componentId(s)*'''
         allObjects = []
         #get all UserDefinedStruct Type Uobjects in ue
-        userDefinedObjs = ue.get_assets_by_class('ftrackNodeStruct_C')
+        assetRegistry = ue.AssetRegistryHelpers.get_asset_registry()
+        userDefinedObjs = assetRegistry.get_assets_by_class('ftrackNodeStruct_C')
 
         #get all ftrackdata Type from the pool above
         for obj in userDefinedObjs:
@@ -214,6 +215,6 @@ class Connector(maincon.Connector):
     @classmethod
     def registerAssets(cls):
         '''Register all the available assets'''
-        import ftrack_connect_unreal.connector.unrealassets
-        ftrack_connect_unreal.connector.unrealassets.registerAssetTypes()
+        import ftrack_connect_unreal_engine.connector.unrealassets
+        ftrack_connect_unreal_engine.connector.unrealassets.registerAssetTypes()
         super(Connector, cls).registerAssets()
