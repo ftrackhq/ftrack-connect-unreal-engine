@@ -82,7 +82,7 @@ class GenericAsset(FTAssetType):
         try:
             self.updateftrackNode(ftNode, iAObj, applicationObject)
         except Exception as error:
-            print error
+            print(error)
 
         return True
 
@@ -112,7 +112,8 @@ class GenericAsset(FTAssetType):
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
     def _rename_object_with_prefix(self, loaded_obj, prefix):
-        '''This method allow renaming a UObject to put a prefix to work along with UE4 naming convention'''
+        '''This method allow renaming a UObject to put a prefix to work along with UE4 naming convention
+            https://github.com/Allar/ue4-style-guide'''
         assert(loaded_obj != None)
         if loaded_obj:        
             object_ad = ue.EditorAssetLibrary.find_asset_data(loaded_obj.get_path_name())
@@ -140,7 +141,7 @@ class RigAsset(GenericAsset):
         
         # import settings
         task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()        
+        task.options = ue.FbxImportUI()
         task.options.import_as_skeletal = True
         task.options.import_materials = False
         task.options.import_animations = False
@@ -162,7 +163,7 @@ class RigAsset(GenericAsset):
 
         # import rig path in UE
         ftrack_node_name='RIG_'+char_name+'_AST_ftrackNode'
-        import_path = '/Game/Asset/Actor/' + char_name
+        import_path = '/Game/Assets/Actor/' + char_name
 
         task.filename = fbx_path
         task.destination_path = import_path
@@ -206,11 +207,11 @@ class RigAsset(GenericAsset):
 
             mesh_skeleton = loaded_skeletal_mesh.skeleton
             if mesh_skeleton:
-                self._rename_object_with_prefix(mesh_skeleton, 'SKEL')
+                 self._rename_object_with_prefix(mesh_skeleton, 'SKEL')
 
             mesh_physics_asset = loaded_skeletal_mesh.physics_asset
             if mesh_physics_asset:
-                self._rename_object_with_prefix(mesh_physics_asset, 'PHAT')
+                 self._rename_object_with_prefix(mesh_physics_asset, 'PHAT')
 
             #add meta data
             try:
@@ -254,19 +255,14 @@ class AnimationAsset(GenericAsset):
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
-        from unreal_engine.classes import PyFbxFactory, Skeleton, AlembicImportFactory, AnimSequence
-        from unreal_engine.enums import EFBXImportType, EAlembicImportType
-        from ue.classes import Material
-        from unreal_engine.structs import SkeletalMaterial, MeshUVChannelInfo
 
         assetRegistry = ue.AssetRegistryHelpers.get_asset_registry()
         skeletons = assetRegistry.get_assets_by_class('Skeleton')
         skeletonName = iAObj.options['ChooseSkeleton']
 
-        skeletonUobject = None
+        skeletonAD = None        
         for skeleton in skeletons:
-            if skeleton.get_name() == skeletonName:  skeletonUobject = skeleton
-
+            if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
 
         fbx_path = iAObj.filePath
 
@@ -289,7 +285,7 @@ class AnimationAsset(GenericAsset):
                     break
 
             except Exception as error:
-                print error
+                print(error)
 
         #seq_name_short = seq_name.split('_')[0]
         seq_name_short = seq_name.replace('Episode','EP')
@@ -298,7 +294,12 @@ class AnimationAsset(GenericAsset):
         ftrack_node_name = 'ANIM_' + task_name +'_'+ seq_name_short+ '_'+shot_name + '_SHT_ftrackNode'
 
         import_path = '/Game/Animation/' + seq_name + '/' + shot_name
-        import_path = import_path + '/' + task_name
+        if shot_name == 'shot_name' and seq_name == 'seq_name':
+            ftrack_task_context = ftrack_asset_version.getParent().getParent()
+            task_context = ftrack_task_context.get('name')
+            import_path = '/Game/Assets/Animation/' + str(task_context)
+        elif seq_name == 'seq_name':
+            import_path = '/Game/Animation/' + shot_name
 
         ftrack_old_node=None
 
@@ -324,37 +325,32 @@ class AnimationAsset(GenericAsset):
                 print('No pressed')
 
         else:
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_as_skeletal = False
+            task.options.import_materials = False
+            task.options.import_mesh = False
+            task.options.import_animations = True
+            task.options.create_physics_asset = False
+            task.options.automated_import_should_detect_type = False
+            task.options.set_editor_property('skeleton',skeletonAD.get_asset())
+            task.options.set_editor_property('mesh_type_to_import', ue.FBXImportType.FBXIT_ANIMATION)
+            task.options.anim_sequence_import_data = ue.FbxAnimSequenceImportData()
+            task.options.anim_sequence_import_data.set_editor_property('import_bone_tracks',True)
+            task.options.anim_sequence_import_data.set_editor_property('import_custom_attribute',True)
 
-            fbx_factory = PyFbxFactory()
-            fbx_factory.ImportUI.bImportMesh = False
-            fbx_factory.ImportUI.bImportAnimations = True
-            fbx_factory.ImportUI.MeshTypeToImport = EFBXImportType.FBXIT_Animation
-            fbx_factory.ImportUI.Skeleton = skeletonUobject
-            fbx_factory.ImportUI.bImportMaterials = False
-            fbx_factory.ImportUI.bImportTextures = False
-            fbx_factory.ImportUI.SkeletalMeshImportData.bUseT0AsRefPose = True
-            fbx_factory.ImportUI.AnimSequenceImportData.bImportBoneTracks = True
+            task.filename = fbx_path
+            task.destination_path = import_path
+            task.replace_existing = False
+            task.automated = True
+            ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+            self.name_import = task.imported_object_paths[0]
+            loaded_anim = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
+            self._rename_object_with_prefix(loaded_anim,'A')
 
-            uobject_import = fbx_factory.factory_import_object(fbx_path, import_path)
-
-
-            #Rename animation asset
-
-            uobject_import_name=uobject_import.get_path_name()
-
-            anim_name = 'A_'+ task_name+'_'+seq_name_short+'_'+shot_name
-
-            uobject_package_name = ue.get_path(uobject_import_name) + '/' + anim_name
-
-            ue.rename_asset(uobject_import_name, uobject_package_name)
-
-            uobject_import.save_package()
-
-
-            # Create Ftrack Node
-
+            # Add ftrack data to object
             try:
-                self.linkToFtrackNode(iAObj,ftrack_node_name,import_path,uobject_import)
+                self.addMetaData(iAObj,ftrack_node_name,import_path,loaded_anim)
             except Exception as error:
                 print error
 
@@ -404,7 +400,7 @@ class GeometryAsset(GenericAsset):
         geo_name = ftrack_asset_build.get('name')
         geo_name = upperFirst(geo_name)
 
-        import_path = '/Game/Asset/Geo/' + geo_name
+        import_path = '/Game/Assets/Geo/' + geo_name
 
         task.filename = fbx_path
         task.destination_path = import_path
@@ -444,13 +440,13 @@ class GeometryAsset(GenericAsset):
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            self._rename_object_with_prefix(loaded_mesh, 'SM')
+            self._rename_object_with_prefix(loaded_mesh, 'S')
 
             # add meta data
             try:
                 self.addMetaData(iAObj, ftrack_node_name, import_path, loaded_mesh)
             except Exception as error:
-                print error
+                print(error)
 
         return 'Imported ' + iAObj.assetType + ' asset'
 
