@@ -57,15 +57,11 @@ def loadAndInit():
 
     # Create new connector and register the assets
     connector.registerAssets()
+    def _app_tick(dt):
+        QApplication.processEvents()
+    ue.register_slate_post_tick_callback(_app_tick)
+    
 
-    #ue.add_menu_bar_extension('Ftrack', open_menu)
-
-    # Check if ftrack struct exists in the project, if not, create a new one.
-
-    try:
-        ftrackNodeBP = ue.get_package_filename('/Game/Blueprints/ftrackNodeStruct')
-    except:
-        ftrackNodeBP = False
 
 
 def refAssetManager():
@@ -109,6 +105,8 @@ def open_dialog(dialog_class):
     if dialog_name not in created_dialogs:
         ftrack_dialog = dialog_class(connector=connector)
         created_dialogs[dialog_name] = ftrack_dialog
+        #this does not seem to work but is the logical way of operating.
+        ue.parent_external_window_to_slate(ftrack_dialog.effectiveWinId())
 
     if created_dialogs[dialog_name]!=None:
         created_dialogs[dialog_name].show()
@@ -124,10 +122,8 @@ def openInfoDialog():
     open_dialog(FtrackUnrealInfoDialog)
     
 if not Connector.batch():
-    
     refAssetManager()
     loadAndInit()
-
 
 ftrack_connect.config.configure_logging(
     'ftrack_connect_unreal', level='WARNING'
