@@ -15,12 +15,11 @@ import unreal as ue
 from ftrack_connect.ui.widget.import_asset import FtrackImportAssetDialog
 from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 from ftrack_connect_unreal_engine.ui.asset_manager_unreal import \
-    FtrackAssetManagerDialog
+    FtrackUnrealAssetManagerDialog
 from ftrack_connect_unreal_engine.ui.info import FtrackUnrealInfoDialog
 from ftrack_connect_unreal_engine.ui.tasks import FtrackTasksDialog
 from QtExt import QtGui
 from QtExt.QtGui import QApplication
-from unreal import BlueprintFactory, PrimaryDataAsset
 
 
 ftrack.setup()
@@ -113,7 +112,7 @@ def open_dialog(dialog_class):
 
 
 def openAssetManagerDialog():
-    open_dialog(FtrackAssetManagerDialog)
+    open_dialog(FtrackUnrealAssetManagerDialog)
 
 def openImportAssetDialog():
     open_dialog(FtrackImportAssetDialog)

@@ -109,6 +109,7 @@ class GenericAsset(FTAssetType):
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetType", iAObj.assetType)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetComponentId", iAObj.componentId)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersionId", iAObj.assetVersionId)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
     def _rename_object_with_prefix(self, loaded_obj, prefix):
@@ -233,6 +234,7 @@ class RigAsset(GenericAsset):
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetType", iAObj.assetType)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetComponentId", iAObj.componentId)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersionId", iAObj.assetVersionId)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
 
