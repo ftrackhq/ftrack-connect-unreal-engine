@@ -143,12 +143,13 @@ class Connector(maincon.Connector):
                 versionId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetVersionId')
                 break
 
-        for asset_data in assets:
-            #unfortunately to access the tag values objects needs to be in memory....
-            asset = asset_data.get_asset()
-            if ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetComponentId')  == componentId and \
-                ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetVersionId')  == versionId:
-                ue.EditorAssetLibrary.delete_asset(asset.get_path_name())
+        if componentId != None and versionId != None:
+            for asset_data in assets:
+                #unfortunately to access the tag values objects needs to be in memory....
+                asset = asset_data.get_asset()
+                if ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetComponentId')  == componentId and \
+                    ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetVersionId')  == versionId:
+                    ue.EditorAssetLibrary.delete_asset(asset.get_path_name())
 
 
     @staticmethod
