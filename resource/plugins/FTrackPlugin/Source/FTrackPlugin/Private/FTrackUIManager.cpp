@@ -66,6 +66,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 		})
 	);
 
+	MenuBuilder.AddMenuSeparator();
 	CommandName = "Asset Manager";
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(CommandName),
@@ -80,6 +81,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 			}
 		})
 	);
+	MenuBuilder.AddMenuSeparator();
 
 	CommandName = "Info";
 	MenuBuilder.AddMenuEntry(
@@ -96,6 +98,20 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 		})
 	);
 
+	CommandName = "Tasks";
+	MenuBuilder.AddMenuEntry(
+		FText::FromString(CommandName),
+		FText::FromString("ftrack tasks"),
+		FSlateIcon(),
+		FExecuteAction::CreateLambda([CommandName]()
+		{
+			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
+			if (pythonPlugin)
+			{
+				pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *; openTasksDialog();"));
+			}
+		})
+	);
 	return MenuBuilder.MakeWidget();
 }
 void FTrackUIManagerImpl::FillToolbar(FToolBarBuilder& ToolbarBuilder)

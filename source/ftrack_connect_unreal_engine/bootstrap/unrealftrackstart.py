@@ -119,7 +119,10 @@ def openImportAssetDialog():
 
 def openInfoDialog():
     open_dialog(FtrackUnrealInfoDialog)
-    
+
+def openTasksDialog():
+    open_dialog(FtrackTasksDialog)
+
 if not Connector.batch():
     refAssetManager()
     loadAndInit()
