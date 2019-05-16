@@ -179,7 +179,7 @@ class Connector(maincon.Connector):
         for asset in selectedAssets:
             assetComponentId = ue.EditorAssetLibrary.get_metadata_tag(asset,'FTrack.AssetComponentId')
             if assetComponentId != None:
-                componentIds.append(assetComponentId)
+                componentIds.append((assetComponentId, str(asset.get_name())))
         return componentIds
 
 
