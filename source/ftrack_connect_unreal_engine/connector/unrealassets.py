@@ -48,13 +48,14 @@ class GenericAsset(FTAssetType):
         imported_skelmesh = task.imported_object_paths
 
         self.name_import = import_path + '/' + imported_asset.asset_name + '.' + imported_asset.asset_name
+        importedAssetNames = [str(imported_asset.asset_name)]
 
         try:
             self.addMetaData(iAObj)
         except Exception as error:
             print(error)
 
-        return 'Imported ' + iAObj.assetType + ' asset'
+        return importedAssetNames
 
     def publishAsset(self, iAObj=None):
         '''Publish the asset defined by the provided *iAObj*.'''
@@ -125,10 +126,13 @@ class GenericAsset(FTAssetType):
         '''This method allow renaming a UObject to put a prefix to work along with UE4 naming convention
             https://github.com/Allar/ue4-style-guide'''
         assert(loaded_obj != None)
-        if loaded_obj:        
+        newNameWithPrefix = ''
+        if loaded_obj:
             object_ad = ue.EditorAssetLibrary.find_asset_data(loaded_obj.get_path_name())
             if object_ad:
-                ue.EditorAssetLibrary.rename_asset(object_ad.object_path, str(object_ad.package_path) + '/' + prefix +'_'  + str(object_ad.asset_name))
+                if ue.EditorAssetLibrary.rename_asset(object_ad.object_path, str(object_ad.package_path) + '/' + prefix +'_'  + str(object_ad.asset_name)):
+                    newNameWithPrefix = prefix +'_'  + str(object_ad.asset_name)
+        return newNameWithPrefix
 
 
     @staticmethod
@@ -187,6 +191,7 @@ class RigAsset(GenericAsset):
         except Exception as error:
             print(error)
 
+        importedAssetNames = []
         if ftrack_old_node!=None:
             msgBox=QMessageBox()
             msgBox.setText('This asset already exists in the project!')
@@ -199,6 +204,7 @@ class RigAsset(GenericAsset):
                 print('Yes pressed')
                 #Delete old asset
                 self.changeVersion(iAObj,ftrack_old_node.get_name())
+                importedAssetNames.append(str(ftrack_old_node.get_name()))
 
 
             elif ret == QMessageBox.No:
@@ -213,15 +219,15 @@ class RigAsset(GenericAsset):
 
             self.name_import = task.imported_object_paths[0]
             loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK')
+            importedAssetNames.append(self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK'))
 
             mesh_skeleton = loaded_skeletal_mesh.skeleton
             if mesh_skeleton:
-                 self._rename_object_with_prefix(mesh_skeleton, 'SKEL')
+                importedAssetNames.append(self._rename_object_with_prefix(mesh_skeleton, 'SKEL'))
 
             mesh_physics_asset = loaded_skeletal_mesh.physics_asset
             if mesh_physics_asset:
-                 self._rename_object_with_prefix(mesh_physics_asset, 'PHAT')
+                importedAssetNames.append(self._rename_object_with_prefix(mesh_physics_asset, 'PHAT'))
 
             #add meta data
             try:
@@ -231,7 +237,7 @@ class RigAsset(GenericAsset):
             except Exception as error:
                 print(error)
 
-            return 'Imported ' + iAObj.assetType + ' asset'
+            return importedAssetNames
 
 
     def changeVersion(self, iAObj=None, applicationObject=None):
@@ -347,6 +353,7 @@ class AnimationAsset(GenericAsset):
         except Exception as error:
             print(error)
 
+        importedAssetNames = []
         if ftrack_old_node!=None:
             msgBox = QMessageBox()
             msgBox.setText('This asset already exists in the project!')
@@ -359,6 +366,7 @@ class AnimationAsset(GenericAsset):
                 print('Yes pressed')
                 # Delete old asset
                 self.changeVersion(iAObj, str(ftrack_old_node.get_name()))
+                importedAssetNames.append(str(ftrack_old_node.get_name()))
         
             elif ret == QMessageBox.No:
                 print('No pressed')
@@ -374,7 +382,7 @@ class AnimationAsset(GenericAsset):
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_anim = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            self._rename_object_with_prefix(loaded_anim,'A')
+            importedAssetNames.append(self._rename_object_with_prefix(loaded_anim,'A'))
 
             # Add ftrack data to object
             try:
@@ -383,7 +391,7 @@ class AnimationAsset(GenericAsset):
                 print(error)
 
 
-        return 'Imported ' + iAObj.assetType + ' asset'
+        return importedAssetNames
 
 
     def changeVersion(self, iAObj=None, applicationObject=None):
@@ -464,6 +472,7 @@ class GeometryAsset(GenericAsset):
         except Exception as error:
             print(error)
 
+        importedAssetNames = []
         if ftrack_old_node != None:
             msgBox = QMessageBox()
             msgBox.setText('This asset already exists in the project!')
@@ -476,6 +485,7 @@ class GeometryAsset(GenericAsset):
                 print('Yes pressed')
                 # Delete old asset
                 self.changeVersion(iAObj, str(ftrack_old_node.get_name()))
+                importedAssetNames.append(str(ftrack_old_node.get_name()))
 
             elif ret == QMessageBox.No:
                 print('No pressed')
@@ -487,7 +497,7 @@ class GeometryAsset(GenericAsset):
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            self._rename_object_with_prefix(loaded_mesh, 'S')
+            importedAssetNames.append(self._rename_object_with_prefix(loaded_mesh,'S'))
 
             # add meta data
             try:
@@ -495,7 +505,7 @@ class GeometryAsset(GenericAsset):
             except Exception as error:
                 print(error)
 
-        return 'Imported ' + iAObj.assetType + ' asset'
+        return importedAssetNames
 
 
 

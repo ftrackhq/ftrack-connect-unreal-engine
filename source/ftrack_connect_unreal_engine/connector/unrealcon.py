@@ -101,7 +101,8 @@ class Connector(maincon.Connector):
         importAsset = assetHandler.getAssetClass(iAObj.assetType)
         if importAsset:
             result = importAsset.importAsset(iAObj)
-            return result
+            Connector.selectObjects(selection=result)
+            return 'imported assets ' + str(result)
         else:
             return 'assetType not supported'
 
