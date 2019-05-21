@@ -39,6 +39,12 @@ void FTrackUIManagerImpl::Initialize()
 	ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::After, nullptr, FToolBarExtensionDelegate::CreateRaw(this, &FTrackUIManagerImpl::FillToolbar));
 
 	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
+	IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
+	if (pythonPlugin)
+	{
+		pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *"));
+	}
+
 }
 
 void FTrackUIManagerImpl::Shutdown()
@@ -51,7 +57,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 	const bool bShouldCloseWindowAfterMenuSelection = true;
 	FMenuBuilder MenuBuilder(bShouldCloseWindowAfterMenuSelection, nullptr);
 
-	FString CommandName = "Import Asset";
+	FString CommandName = "Import asset";
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(CommandName),
 		FText::FromString("ftrack import asset"),
@@ -61,13 +67,13 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
 			if (pythonPlugin)
 			{
-				pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *; openImportAssetDialog();"));
+				pythonPlugin->ExecPythonCommand(_T("openImportAssetDialog()"));
 			}
 		})
 	);
 
 	MenuBuilder.AddMenuSeparator();
-	CommandName = "Asset Manager";
+	CommandName = "Asset manager";
 	MenuBuilder.AddMenuEntry(
 		FText::FromString(CommandName),
 		FText::FromString("ftrack browser"),
@@ -77,7 +83,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
 			if (pythonPlugin)
 			{
-				pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *; openAssetManagerDialog();"));
+				pythonPlugin->ExecPythonCommand(_T("openAssetManagerDialog()"));
 			}
 		})
 	);
@@ -93,7 +99,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
 			if (pythonPlugin)
 			{
-				pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *; openInfoDialog();"));
+				pythonPlugin->ExecPythonCommand(_T("openInfoDialog()"));
 			}
 		})
 	);
@@ -108,7 +114,7 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
 			if (pythonPlugin)
 			{
-				pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *; openTasksDialog();"));
+				pythonPlugin->ExecPythonCommand(_T("openTasksDialog();"));
 			}
 		})
 	);

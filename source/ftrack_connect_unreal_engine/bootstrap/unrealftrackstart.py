@@ -56,6 +56,7 @@ def loadAndInit():
 
     # Create new connector and register the assets
     connector.registerAssets()
+    QApplicationInit()
     def _app_tick(dt):
         QApplication.processEvents()
     ue.register_slate_post_tick_callback(_app_tick)
@@ -90,7 +91,7 @@ def framerateInit():
     fpsType = mapping.get(fps, 'pal')
     ue.log('Setting current unit to {0}'.format(fps))
 
-def open_dialog(dialog_class):
+def open_dialog(dialog_class, title):
     '''Open *dialog_class* and create if not already existing.'''
     QApplicationInit()
 
@@ -103,6 +104,7 @@ def open_dialog(dialog_class):
 
     if dialog_name not in created_dialogs:
         ftrack_dialog = dialog_class(connector=connector)
+        ftrack_dialog.setWindowTitle(title)
         created_dialogs[dialog_name] = ftrack_dialog
         #this does not seem to work but is the logical way of operating.
         ue.parent_external_window_to_slate(ftrack_dialog.effectiveWinId())
@@ -112,16 +114,16 @@ def open_dialog(dialog_class):
 
 
 def openAssetManagerDialog():
-    open_dialog(FtrackUnrealAssetManagerDialog)
+    open_dialog(FtrackUnrealAssetManagerDialog, 'Asset manager')
 
 def openImportAssetDialog():
-    open_dialog(FtrackImportAssetDialog)
+    open_dialog(FtrackImportAssetDialog, 'Import asset')
 
 def openInfoDialog():
-    open_dialog(FtrackUnrealInfoDialog)
+    open_dialog(FtrackUnrealInfoDialog, 'Info')
 
 def openTasksDialog():
-    open_dialog(FtrackTasksDialog)
+    open_dialog(FtrackTasksDialog, 'Tasks')
 
 if not Connector.batch():
     refAssetManager()
