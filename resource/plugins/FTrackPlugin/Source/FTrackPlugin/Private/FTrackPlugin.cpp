@@ -21,6 +21,15 @@ void FTrackPlugin::StartupModule()
 	if (GIsEditor)
 	{
 		FTrackUIManager::Initialize();
+		TSet<FName>& GlobalTagsForAssetRegistry = UObject::GetMetaDataTagsForAssetRegistry();
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.IntegrationVersion")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.IntegrationVersion"));
+		}
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetComponentId")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetComponentId"));
+		}
 	}
 }
 

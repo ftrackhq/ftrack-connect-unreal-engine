@@ -107,27 +107,18 @@ class GenericAsset(FTAssetType):
 
     def updateMetaData(self, iAObj, assetObj):
         '''Update informations in *ftrackNode* with the provided *iAObj*. '''
-        if assetObj:
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetVersion", iAObj.assetVersion)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetPath", iAObj.filePath)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetTake", iAObj.componentName)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetType", iAObj.assetType)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetComponentId", iAObj.componentId)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.AssetVersionId", iAObj.assetVersionId)
-            ue.EditorAssetLibrary.set_metadata_tag(assetObj, "FTrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
-            ue.EditorAssetLibrary.save_loaded_asset(assetObj)
-
+        self.addMetaData(iAObj, assetObj)
 
     def addMetaData(self, iAObj, linked_obj):
         '''Add meta data to object'''
         if linked_obj:
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersion", iAObj.assetVersion)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetPath", iAObj.filePath)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetTake", iAObj.componentName)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetType", iAObj.assetType)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetComponentId", iAObj.componentId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersionId", iAObj.assetVersionId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersion", iAObj.assetVersion)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetPath", iAObj.filePath)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetTake", iAObj.componentName)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetType", iAObj.assetType)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetComponentId", iAObj.componentId)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
     def _rename_object_with_prefix(self, loaded_obj, prefix):
@@ -176,8 +167,6 @@ class RigAsset(GenericAsset):
         '''Import rig asset defined in *iAObj*'''
         
         # import settings
-      
-        
         fbx_path = iAObj.filePath
 
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
@@ -244,18 +233,6 @@ class RigAsset(GenericAsset):
 
             return 'Imported ' + iAObj.assetType + ' asset'
 
-
-    def addMetaData(self, iAObj,linked_obj):
-        '''Create ftrack metadata on the imported asset'''
-        if linked_obj:
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersion", iAObj.assetVersion)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetPath", iAObj.filePath)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetTake", iAObj.componentName)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetType", iAObj.assetType)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetComponentId", iAObj.componentId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.AssetVersionId", iAObj.assetVersionId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "FTrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
-            ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
     def changeVersion(self, iAObj=None, applicationObject=None):
         '''Change the version of the asset defined in *iAObj*
@@ -485,7 +462,7 @@ class GeometryAsset(GenericAsset):
         try:
             ftrack_old_node = self._find_asset_instance(import_path, iAObj.componentId)
         except Exception as error:
-            print error
+            print(error)
 
         if ftrack_old_node != None:
             msgBox = QMessageBox()
