@@ -33,8 +33,8 @@ class Connector(maincon.Connector):
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
             asset = asset_data.get_asset()
-            if asset and  asset_data.get_tag_value('FTrack.IntegrationVersion') != None :
-                assetComponentId = asset_data.get_tag_value('FTrack.AssetComponentId')
+            if asset and  asset_data.get_tag_value('ftrack.IntegrationVersion') != None :
+                assetComponentId = asset_data.get_tag_value('ftrack.AssetComponentId')
                 nameInScene = str(asset.get_name())
                 componentIds.append((assetComponentId, nameInScene))
 
@@ -140,16 +140,16 @@ class Connector(maincon.Connector):
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
                 #a single asset can be represented by multiple assets in the 
-                componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetComponentId')
-                versionId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetVersionId')
+                componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')
+                versionId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId')
                 break
 
         if componentId != None and versionId != None:
             for asset_data in assets:
                 #unfortunately to access the tag values objects needs to be in memory....
                 asset = asset_data.get_asset()
-                if ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetComponentId')  == componentId and \
-                    ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetVersionId')  == versionId:
+                if ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')  == componentId and \
+                    ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId')  == versionId:
                     ue.EditorAssetLibrary.delete_asset(asset.get_path_name())
 
 
@@ -178,7 +178,7 @@ class Connector(maincon.Connector):
         componentIds = []
         selectedAssets = ue.EditorUtilityLibrary.get_selected_assets()
         for asset in selectedAssets:
-            assetComponentId = ue.EditorAssetLibrary.get_metadata_tag(asset,'FTrack.AssetComponentId')
+            assetComponentId = ue.EditorAssetLibrary.get_metadata_tag(asset,'ftrack.AssetComponentId')
             if assetComponentId != None:
                 componentIds.append((assetComponentId, str(asset.get_name())))
         return componentIds

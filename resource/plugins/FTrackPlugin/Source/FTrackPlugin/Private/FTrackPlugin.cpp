@@ -30,6 +30,18 @@ void FTrackPlugin::StartupModule()
 		{
 			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetComponentId"));
 		}
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetVersionId")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetVersionId"));
+		}
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetTake")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetTake"));
+		}
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetType")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetType"));
+		}
 	}
 }
 

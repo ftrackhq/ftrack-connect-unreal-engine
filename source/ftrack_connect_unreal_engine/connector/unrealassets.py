@@ -80,7 +80,7 @@ class GenericAsset(FTAssetType):
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
             asset = asset_data.get_asset()
-            componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'FTrack.AssetComponentId')
+            componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')
             if componentId == assetComponentId:
                 return asset
         return None
@@ -175,11 +175,11 @@ class RigAsset(GenericAsset):
 
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
 
-        ftrack_asset_build = ftrack_asset_version.getParent().getParent()
-        char_name = ftrack_asset_build.get('name')
+        ftrack_asset = ftrack_asset_version.getParent()
+        char_name = ftrack_asset.get('name')
         char_name = upperFirst(char_name)
 
-        import_path = '/Game/Assets/Actor/' + char_name
+        import_path = '/Game/Assets/' + char_name + '/Actor/'
         #save the file when it is imported, that's right!
         
 
@@ -458,11 +458,11 @@ class GeometryAsset(GenericAsset):
         
         fbx_path = iAObj.filePath
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
-        ftrack_asset_build = ftrack_asset_version.getParent().getParent()
-        geo_name = ftrack_asset_build.get('name')
-        geo_name = upperFirst(geo_name)
+        ftrack_asset = ftrack_asset_version.getParent()
+        asset_name = ftrack_asset.get('name')
+        asset_name = upperFirst(asset_name)
 
-        import_path = '/Game/Assets/Geo/' + geo_name
+        import_path = '/Game/Assets/' + asset_name + '/Geo/'
         
         #ensure there is no spaces
         import_path = import_path.replace(' ','_')
