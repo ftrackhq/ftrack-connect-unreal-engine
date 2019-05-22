@@ -262,6 +262,12 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         )
 
         environment = ftrack_connect.application.appendPath(
+           ftrack_installation_path,
+           'QT_PLUGIN_PATH',
+           environment
+       )
+
+        environment = ftrack_connect.application.appendPath(
             os.path.join(ftrack_installation_path, "library.zip"),
             'PYTHONPATH',
             environment
