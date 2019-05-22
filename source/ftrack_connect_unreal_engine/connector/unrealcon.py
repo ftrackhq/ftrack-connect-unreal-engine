@@ -163,7 +163,7 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            print 'assetType not supported'
+            print('assetType not supported')
             return False
 
     @staticmethod

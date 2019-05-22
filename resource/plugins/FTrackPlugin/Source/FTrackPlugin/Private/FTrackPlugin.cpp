@@ -21,6 +21,7 @@ void FTrackPlugin::StartupModule()
 	if (GIsEditor)
 	{
 		FTrackUIManager::Initialize();
+#if WITH_EDITOR
 		TSet<FName>& GlobalTagsForAssetRegistry = UObject::GetMetaDataTagsForAssetRegistry();
 		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.IntegrationVersion")))
 		{
@@ -34,14 +35,19 @@ void FTrackPlugin::StartupModule()
 		{
 			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetVersionId"));
 		}
-		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetTake")))
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.ComponentName")))
 		{
-			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetTake"));
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.ComponentName"));
+		}
+		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetId")))
+		{
+			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetId"));
 		}
 		if (!GlobalTagsForAssetRegistry.Contains(FName("ftrack.AssetType")))
 		{
 			GlobalTagsForAssetRegistry.Add(FName("ftrack.AssetType"));
 		}
+#endif
 	}
 }
 

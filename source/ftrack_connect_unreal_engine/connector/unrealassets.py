@@ -73,16 +73,18 @@ class GenericAsset(FTAssetType):
         task.save = True
         return task
 
-    def _find_asset_instance(self, rootPath, assetComponentId):
-        componentId = None
-        versionId = None
+    def _find_asset_instance(self, rootPath, assetVersionId, assetType):
+        ftrack_asset_version = ftrack.AssetVersion(assetVersionId)
+        ftrack_asset_id = ftrack_asset_version.getParent().getId()
         assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path(rootPath,True)
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
             asset = asset_data.get_asset()
-            componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')
-            if componentId == assetComponentId:
-                return asset
+            assetId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetId')
+            currentAssetType = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetType')
+            if assetId and currentAssetType:
+                if assetId == ftrack_asset_id and currentAssetType == assetType:
+                    return asset
         return None
 
     def changeVersion(self, iAObj=None, applicationObject=None):
@@ -115,8 +117,9 @@ class GenericAsset(FTAssetType):
         if linked_obj:
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersion", iAObj.assetVersion)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetPath", iAObj.filePath)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetTake", iAObj.componentName)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.ComponentName", iAObj.componentName)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetType", iAObj.assetType)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetId", iAObj.assetId)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetComponentId", iAObj.componentId)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
@@ -179,7 +182,7 @@ class RigAsset(GenericAsset):
         char_name = ftrack_asset.get('name')
         char_name = upperFirst(char_name)
 
-        import_path = '/Game/Assets/' + char_name + '/Actor/'
+        import_path = '/Game/Assets/' + char_name + '/Actor'
         #save the file when it is imported, that's right!
         
 
@@ -187,7 +190,7 @@ class RigAsset(GenericAsset):
         ftrack_old_node=None
 
         try:
-            ftrack_old_node=self._find_asset_instance(import_path,str(iAObj.componentId))
+            ftrack_old_node=self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
             print(error)
 
@@ -337,19 +340,19 @@ class AnimationAsset(GenericAsset):
         seq_name_short = seq_name_short.replace('DreamSequence', 'DS')
 
 
-        import_path = '/Game/Animation/' + seq_name + '/' + shot_name
+        import_path = '/Game/' + seq_name + '/' + shot_name
         if shot_name == 'shot_name' and seq_name == 'seq_name':
-            ftrack_task_context = ftrack_asset_version.getParent().getParent()
-            task_context = ftrack_task_context.get('name')
-            import_path = '/Game/Assets/Animation/' + str(task_context)
+            ftrack_asset_context = ftrack_asset_version.getParent()
+            asset_name = ftrack_asset_context.get('name')
+            import_path = '/Game/Assets/' + str(asset_name) + '/Animation'
         elif seq_name == 'seq_name':
-            import_path = '/Game/Animation/' + shot_name
+            import_path = '/Game/' +  shot_name  + '/Animation'
 
         #ensure there is no spaces
         import_path = import_path.replace(' ','_')
         ftrack_old_node = None
         try:
-            ftrack_old_node = self._find_asset_instance(import_path, iAObj.componentId)
+            ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
             print(error)
 
@@ -462,13 +465,13 @@ class GeometryAsset(GenericAsset):
         asset_name = ftrack_asset.get('name')
         asset_name = upperFirst(asset_name)
 
-        import_path = '/Game/Assets/' + asset_name + '/Geo/'
+        import_path = '/Game/Assets/' + asset_name + '/Geo'
         
         #ensure there is no spaces
         import_path = import_path.replace(' ','_')
         ftrack_old_node = None
         try:
-            ftrack_old_node = self._find_asset_instance(import_path, iAObj.componentId)
+            ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
             print(error)
 
