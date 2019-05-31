@@ -25,7 +25,6 @@ class GenericAsset(FTAssetType):
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
-
         task = ue.AssetImportTask()
         task.options = ue.FbxImportUI()
         task.options.import_mesh = iAObj.options['ImportMesh']
@@ -159,6 +158,7 @@ class RigAsset(GenericAsset):
         task.options.import_materials = False
         task.options.import_animations = False
         task.options.create_physics_asset = True
+        task.options.automated_import_should_detect_type = False
         task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_SKELETAL_MESH
         task.options.skeletal_mesh_import_data = ue.FbxSkeletalMeshImportData()
         task.options.skeletal_mesh_import_data.set_editor_property('use_t0_as_ref_pose',True)
@@ -447,18 +447,23 @@ class GeometryAsset(GenericAsset):
     def _get_asset_import_task(self):
         task = ue.AssetImportTask()
         task.options = ue.FbxImportUI()
+        task.options.import_mesh = True
+        task.options.import_as_skeletal = False
         task.options.import_materials = False
         task.options.import_animations = False
+        task.options.create_physics_asset = False
         task.options.override_full_name = True
-        task.options.skeletal_mesh_import_data.normal_import_method = ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+        task.options.automated_import_should_detect_type = False
+        task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_STATIC_MESH
+        task.options.static_mesh_import_data = ue.FbxStaticMeshImportData()
+        task.options.static_mesh_import_data.set_editor_property('combine_meshes', True)
         task.replace_existing = True
         task.automated = True
         task.save = True
         return task
 
     def importAsset(self, iAObj=None):
-        '''Import rig asset defined in *iAObj*'''
-        
+        '''Import geometry asset defined in *iAObj*'''
         fbx_path = iAObj.filePath
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
         ftrack_asset = ftrack_asset_version.getParent()
@@ -497,6 +502,7 @@ class GeometryAsset(GenericAsset):
             task = self._get_asset_import_task()
             task.filename = fbx_path
             task.destination_path = import_path
+            task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
@@ -509,6 +515,20 @@ class GeometryAsset(GenericAsset):
                 print(error)
 
         return importedAssetNames
+
+
+    @staticmethod
+    def importOptions():
+        '''Return import options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Import Material" accepts="unreal">                
+                <option type="checkbox" name="importMaterial" value="True"/>
+            </row>
+        </tab>
+        '''
+       
+        return xml
 
 
 
