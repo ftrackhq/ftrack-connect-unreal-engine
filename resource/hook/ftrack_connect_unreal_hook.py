@@ -52,7 +52,9 @@ class LaunchApplicationAction(object):
 
         Unreal can be launched only if the selection is Project.
         '''
-
+        if not selection:
+            return False
+    
         entity = selection[0]
         task = ftrack.Task(entity['entityId'])
 
