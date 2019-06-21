@@ -218,8 +218,18 @@ class RigAsset(GenericAsset):
             task = self._get_asset_import_task()
             task.filename = fbx_path
             task.destination_path = import_path
-            ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+            task.options.create_physics_asset = iAObj.options['CreatePhysicsAsset']
+            skeletons = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_class('Skeleton')
+            skeletonName = iAObj.options['ChooseSkeleton']
 
+            skeletonAD = None
+            for skeleton in skeletons:
+                if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
+
+            if skeletonAD != None:
+                task.options.set_editor_property('skeleton',skeletonAD.get_asset())
+            ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+            task.options.import_materials = iAObj.options['importMaterial']
             self.name_import = task.imported_object_paths[0]
             loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
             importedAssetNames.append(self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK'))
@@ -269,14 +279,29 @@ class RigAsset(GenericAsset):
 
     @staticmethod
     def importOptions():
-        '''Return rig fbx import options for the component'''
-
+        '''Return import options for the component'''
         xml = '''
-        <tab name="Options">   
-            
-
+        <tab name="Options">
+            <row name="Choose Skeleton" accepts="unreal">
+                <option type="combo" name="ChooseSkeleton" >{0}</option>
+            </row>
+            <row name="Create Physics Asset" accepts="unreal">                
+                <option type="checkbox" name="CreatePhysicsAsset" value="True"/>
+            </row>
+            <row name="Import Material" accepts="unreal">                
+                <option type="checkbox" name="importMaterial" value="True"/>
+            </row>
         </tab>
         '''
+
+        assetRegistry = ue.AssetRegistryHelpers.get_asset_registry()
+        skeletons = assetRegistry.get_assets_by_class('Skeleton')
+        skeletonsInTheScene = '''<optionitem name="None"/>'''
+        for skeleton in skeletons:
+            str= '''<optionitem name="{0}"/>'''.format(skeleton.asset_name)
+            skeletonsInTheScene += str
+
+        xml = xml.format(skeletonsInTheScene)
         return xml
 
 class AnimationAsset(GenericAsset):
@@ -308,7 +333,7 @@ class AnimationAsset(GenericAsset):
         skeletons = assetRegistry.get_assets_by_class('Skeleton')
         skeletonName = iAObj.options['ChooseSkeleton']
 
-        skeletonAD = None        
+        skeletonAD = None
         for skeleton in skeletons:
             if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
 
