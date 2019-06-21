@@ -401,7 +401,14 @@ class AnimationAsset(GenericAsset):
 
         else:
             task = self._get_asset_import_task()
-            
+            if iAObj.options['UseCustomRange']:
+                task.options.anim_sequence_import_data.set_editor_property('animation_length', ue.FBXAnimationLengthImportType.FBXALIT_SET_RANGE)
+                rangeInterval = ue.Int32Interval()
+                rangeInterval.set_editor_property('min', iAObj.options['AnimRangeMin'])
+                rangeInterval.set_editor_property('max', iAObj.options['AnimRangeMax'])
+                task.options.anim_sequence_import_data.set_editor_property('frame_import_range', rangeInterval)
+            else:
+                task.options.anim_sequence_import_data.set_editor_property('animation_length', ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME)
 
             task.options.set_editor_property('skeleton',skeletonAD.get_asset())
             task.filename = fbx_path
@@ -450,7 +457,13 @@ class AnimationAsset(GenericAsset):
             <row name="Choose Skeleton" accepts="unreal">
                 <option type="combo" name="ChooseSkeleton" >{0}</option>
             </row>            
-
+            <row name="Use Custom Animation Range" accepts="unreal">                
+                <option type="checkbox" name="UseCustomRange" value="False"/>
+            </row>
+            <row name="Range" accepts="unreal"> 
+                <option type="float" name="AnimRangeMin" value="1"/>
+                <option type="float" name="AnimRangeMax" value="100"/>
+            </row>
         </tab>
         '''
         assetRegistry = ue.AssetRegistryHelpers.get_asset_registry()
