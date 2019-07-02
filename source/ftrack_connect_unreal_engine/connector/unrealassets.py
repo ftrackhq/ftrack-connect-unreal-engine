@@ -86,11 +86,26 @@ class GenericAsset(FTAssetType):
                     return asset
         return None
 
+    def _get_asset_relative_path(self, ftrack_asset_version):
+        task = ftrack_asset_version.getTask()
+        #location.
+        session = ftrack_api.Session()
+        linksForTask = session.query(
+            'select link from Task where name is "'+ task.getName() + '"'
+        ).first()['link']
+        relative_path = ""
+        #remove the project
+        linksForTask.pop(0)
+        for link in linksForTask:
+            relative_path += link['name'].replace(' ','_')
+            relative_path += '/'
+        return relative_path
+
     def changeVersion(self, iAObj=None, applicationObject=None):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game/Assets',True)
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
             asset = asset_data.get_asset()
@@ -178,13 +193,9 @@ class RigAsset(GenericAsset):
 
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
 
-        ftrack_asset = ftrack_asset_version.getParent()
-        char_name = ftrack_asset.get('name')
-        char_name = upperFirst(char_name)
-
-        import_path = '/Game/Assets/' + char_name + '/Actor'
-        #save the file when it is imported, that's right!
-        
+        asset_name = ftrack_asset_version.getParent().get('name')
+        asset_name = upperFirst(asset_name)
+        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
 
         # find out if ftrack node already exists in th project
         ftrack_old_node=None
@@ -336,42 +347,12 @@ class AnimationAsset(GenericAsset):
         skeletonAD = None
         for skeleton in skeletons:
             if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
-
+    
         fbx_path = iAObj.filePath
 
-        ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
-
-        task_name = ftrack_asset_version.getTask().get('name')
-        parents = ftrack_asset_version.getParents()
-        shot_name = 'shot_name'
-        seq_name = 'seq_name'
-
-
-        for item in parents:
-            try:
-                if item.get('objecttypename') == 'Shot':
-                    shot_name = item.get('name')
-                if item.get('objecttypename') == 'Episode':
-                    seq_name = item.get('name')
-                if item.get('objecttypename') == 'Sequence':
-                    seq_name = item.get('name')
-                    break
-
-            except Exception as error:
-                print(error)
-
-        #seq_name_short = seq_name.split('_')[0]
-        seq_name_short = seq_name.replace('Episode','EP')
-        seq_name_short = seq_name_short.replace('DreamSequence', 'DS')
-
-
-        import_path = '/Game/' + seq_name + '/' + shot_name
-        if shot_name == 'shot_name' and seq_name == 'seq_name':
-            ftrack_asset_context = ftrack_asset_version.getParent()
-            asset_name = ftrack_asset_context.get('name')
-            import_path = '/Game/Assets/' + str(asset_name) + '/Animation'
-        elif seq_name == 'seq_name':
-            import_path = '/Game/' +  shot_name  + '/Animation'
+        ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)       
+        asset_name = ftrack_asset_version.getParent().get('name')
+        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
 
         #ensure there is no spaces
         import_path = import_path.replace(' ','_')
@@ -508,7 +489,7 @@ class GeometryAsset(GenericAsset):
         asset_name = ftrack_asset.get('name')
         asset_name = upperFirst(asset_name)
 
-        import_path = '/Game/Assets/' + asset_name + '/Geo'
+        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
         
         #ensure there is no spaces
         import_path = import_path.replace(' ','_')
