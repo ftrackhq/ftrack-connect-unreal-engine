@@ -239,6 +239,18 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         environment['FTRACK_CONTEXTID'] = entity['entityId']
         environment['QT_PREFERRED_BINDING'] = 'PySide'
         task = ftrack.Task(entity['entityId'])
+        taskParent = task.getParent()
+
+        try:
+            environment['FS'] = str(int(taskParent.getFrameStart()))
+        except Exception:
+            environment['FS'] = '1'
+
+        try:
+            environment['FE'] = str(int(taskParent.getFrameEnd()))
+        except Exception:
+            environment['FE'] = '1'
+
         environment['FTRACK_TASKID'] = task.getId()
         environment['FTRACK_SHOTID'] = task.get('parent_id')
 

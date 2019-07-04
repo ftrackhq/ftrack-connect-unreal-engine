@@ -25,7 +25,7 @@ from QtExt.QtGui import QApplication
 ftrack.setup()
 
 currentEntity = ftrack.Task(
-    os.getenv('FTRACK_TASKID', os.getenv('FTRACK_SHOTID'))
+    os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID')
 )
 
 created_dialogs = dict()
@@ -56,6 +56,7 @@ def loadAndInit():
 
     # Create new connector and register the assets
     connector.registerAssets()
+    #connector.setTimeLine()
     QApplicationInit()
     def _app_tick(dt):
         QApplication.processEvents()
