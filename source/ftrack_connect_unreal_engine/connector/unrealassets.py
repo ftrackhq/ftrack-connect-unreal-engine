@@ -239,8 +239,8 @@ class RigAsset(GenericAsset):
 
             if skeletonAD != None:
                 task.options.set_editor_property('skeleton',skeletonAD.get_asset())
-            ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             task.options.import_materials = iAObj.options['importMaterial']
+            ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
             importedAssetNames.append(self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK'))
@@ -268,7 +268,7 @@ class RigAsset(GenericAsset):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game/Assets',True)
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #rig asset import 
             if str(asset_data.get_class().get_name()) == 'SkeletalMesh':
@@ -276,7 +276,8 @@ class RigAsset(GenericAsset):
                 asset = asset_data.get_asset()
                 if str(asset.get_name()) == applicationObject:      
                     task = self._get_asset_import_task()
-                    task.options.create_physics_asset = False
+                    task.options.create_physics_asset = iAObj.options['CreatePhysicsAsset']
+                    task.options.import_materials = iAObj.options['importMaterial']
                     task.options.set_editor_property('skeleton',asset.skeleton)
                     task.filename = iAObj.filePath
                     task.destination_path = str(asset_data.package_path)
