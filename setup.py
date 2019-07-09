@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 Pinta Studios
+# :copyright: Copyright (c) 2019 ftrack
 
 
 import os
@@ -97,6 +97,12 @@ class BuildPlugin(Command):
             os.path.join(STAGING_PATH, 'hook')
         )
 
+        # Copy readme file
+        shutil.copyfile(
+            README_PATH,
+            os.path.join(STAGING_PATH, 'README.md')
+        )
+
         # Install local dependencies
         pip_main(
             [
@@ -128,7 +134,7 @@ setup(
     long_description=open(README_PATH).read(),
     keywords='',
     url='https://bitbucket.org/taotang123/ftrack-connect-unreal/',
-    author='pinta',
+    author='ftrack',
     author_email='support@ftrack.com',
     license='Apache License (2.0)',
     packages=find_packages(SOURCE_PATH),

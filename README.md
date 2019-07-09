@@ -1,6 +1,6 @@
-Unreal Engine 4 Ftrack Integration
+Unreal Engine 4 ftrack Integration
 ===========================
-This is fairly brute-force way of ftrack-connect-unreal integration with Unreal Engine based off of ftrack-connect-package using UnrealEnginePython plugin
+This is an ftrack-connect-unreal integration with Unreal Engine using a UE4 C++ plugin FTrackConnect.
 
 Supported Platforms
 -------------------
