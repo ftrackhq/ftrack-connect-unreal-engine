@@ -84,20 +84,15 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         """
         Equivalent to __init__ but will also be called from C++
         """
-        print('_post_init ' + str(self))
-        unreal.log("FTrackConnectWrapper._post_init begin")
         ftrack.setup()
 
         self.currentEntity = ftrack.Task(
             os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID')
         )
 
-        from ftrack_connect.connector import panelcom
-        panelComInstance = panelcom.PanelComInstance.instance()
-        panelComInstance.refreshListeners()
-        ftrackContext.external_init()        
+        ftrackContext.external_init()
         ftrackContext.connector.registerAssets()
-        #connector.setTimeLine()
+
         os.sys.excepthook = ue_exception
         app = QApplication.instance()
         if app is None:
@@ -110,7 +105,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         ftrackContext.tickHandle = unreal.register_slate_post_tick_callback(_app_tick)
 
         def _app_quit(dt):
-            unreal.register_slate_post_tick_callback(ftrackContext.tickHandle)\
+            unreal.register_slate_post_tick_callback(ftrackContext.tickHandle)
 
         QApplication.instance().aboutToQuit.connect(_app_quit)
 
@@ -121,7 +116,6 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
             'ftrack_connect_unreal', level='WARNING'
         )
         self.on_connect_initialized()
-        unreal.log("FTrackConnectWrapper._post_init end")
  
 
     @unreal.ufunction(override=True)
@@ -146,6 +140,10 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         for command in ftrackContext.commands:
             if command.name == command_name:
                 if command.commandType == "dialog":
+                    #ensure content is refreshed
+                    from ftrack_connect.connector import panelcom
+                    panelComInstance = panelcom.PanelComInstance.instance()
+                    panelComInstance.refreshListeners()
                     self._open_dialog(command.userData,command.displayName)
                     break
         

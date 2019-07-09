@@ -40,14 +40,12 @@ class GenericAsset(FTAssetType):
         task.save = True
 
         imported_asset = ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
-        #let's check what files were imported/created:
-        imported_skelmesh = task.imported_object_paths
-
+        
         self.name_import = import_path + '/' + imported_asset.asset_name + '.' + imported_asset.asset_name
         importedAssetNames = [str(imported_asset.asset_name)]
 
         try:
-            self.addMetaData(iAObj)
+            self.addMetaData(iAObj,imported_asset)
         except Exception as error:
             print(error)
 
@@ -412,7 +410,7 @@ class AnimationAsset(GenericAsset):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game/Assets',True)
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
             asset = asset_data.get_asset()

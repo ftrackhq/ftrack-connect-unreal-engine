@@ -30,7 +30,7 @@ public:
 };
 
 /**
- * Wrapper for the Python ftrac connect
+ * Wrapper for the Python ftrack connect
  * The functions are implemented in Python by a class that derives from this one
  */
 UCLASS(Blueprintable)
