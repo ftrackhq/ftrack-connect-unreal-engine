@@ -51,13 +51,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	TArray<FFTrackMenuItem> GetFtrackMenuItems() const;
 
-
 	// Shut down the Python ftrack connect
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	void Shutdown() const;
 
-	// Opens the AssetManagerDialog from python
+	// Execute a command in Python
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	void ExecuteCommand(const FString& CommandName) const;
+
+	// Add global tag in asset registry, this is used to facilitate query of assets
+	UFUNCTION(BlueprintCallable, Category = Python)
+	void AddGlobalTagInAssetRegistry(const FString& tag) const;
 
 };

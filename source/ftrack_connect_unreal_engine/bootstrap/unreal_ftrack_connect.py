@@ -26,6 +26,9 @@ def ue_exception(_type, value, back):
         unreal.log_error(line)
 
 class Command(object):
+    """
+        Command object allowing binding between UI and actions
+    """
     def __init__(self, name, display_name, description, command_type = "dialog", user_data = None ):
         self.name = name
         self.displayName = display_name
@@ -34,11 +37,15 @@ class Command(object):
         self.userData = user_data
 
 class FTrackContext(object):
+    """
+        Generic context ftrack object allowing caching of python specific data.
+    """
     def __init__(self):
         self.connector = None
         self.dialogs = dict()
         self.tickHandle = None
         self._init_commands()
+        self._init_tags()
 
     def _init_commands(self):
         self.commands = []
@@ -49,6 +56,17 @@ class FTrackContext(object):
         self.commands.append(Command("", "","","separator"))
         self.commands.append(Command("ftrackInfo", "Info","ftrack info","dialog",FtrackUnrealInfoDialog))
         self.commands.append(Command("ftrackTasks", "Tasks","ftrack tasks","dialog",FtrackTasksDialog))
+
+    def _init_tags(self):
+        self.tags = []
+        tagPrefix = "ftrack."
+        self.tags.append(tagPrefix + "IntegrationVersion")
+        self.tags.append(tagPrefix + "AssetComponentId")
+        self.tags.append(tagPrefix + "AssetVersionId")
+        self.tags.append(tagPrefix + "ComponentName")
+        self.tags.append(tagPrefix + "AssetId")
+        self.tags.append(tagPrefix + "AssetType")
+        self.tags.append(tagPrefix + "AssetVersion")
 
     def external_init(self):
         self.connector = Connector()
@@ -95,6 +113,9 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
             unreal.register_slate_post_tick_callback(ftrackContext.tickHandle)\
 
         QApplication.instance().aboutToQuit.connect(_app_quit)
+
+        for tag in ftrackContext.tags:
+            self.add_global_tag_in_asset_registry(tag)
 
         ftrack_connect.config.configure_logging(
             'ftrack_connect_unreal', level='WARNING'

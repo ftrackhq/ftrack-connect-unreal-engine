@@ -1,4 +1,3 @@
-// Copyright 2019 ftrack. All Rights Reserved.
 #include "FTrackConnect.h"
 
 #include "AssetRegistryModule.h"
@@ -36,4 +35,16 @@ static void OnEditorExit()
 void UFTrackConnect::OnConnectInitialized() const
 {
 	IPythonScriptPlugin::Get()->OnPythonShutdown().AddStatic(OnEditorExit);
+}
+
+void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString& tag) const
+{
+#if WITH_EDITOR
+	FName tagName(*tag);
+	TSet<FName>& GlobalTagsForAssetRegistry = UObject::GetMetaDataTagsForAssetRegistry();
+	if (!GlobalTagsForAssetRegistry.Contains(tagName))
+	{
+		GlobalTagsForAssetRegistry.Add(tagName);
+	}
+#endif
 }
