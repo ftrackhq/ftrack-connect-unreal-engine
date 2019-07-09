@@ -2,6 +2,7 @@
 
 #include "FTrackUIManager.h"
 #include "FTrackStyle.h"
+#include "FTrackConnect.h"
 #include "ContentBrowserModule.h"
 #include "LevelEditor.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
@@ -39,12 +40,6 @@ void FTrackUIManagerImpl::Initialize()
 	ToolbarExtender->AddToolBarExtension("Settings", EExtensionHook::After, nullptr, FToolBarExtensionDelegate::CreateRaw(this, &FTrackUIManagerImpl::FillToolbar));
 
 	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
-	IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
-	if (pythonPlugin)
-	{
-		pythonPlugin->ExecPythonCommand(_T("from ftrack_connect_unreal_engine.bootstrap.unrealftrackstart import *"));
-	}
-
 }
 
 void FTrackUIManagerImpl::Shutdown()
@@ -57,67 +52,35 @@ TSharedRef<SWidget> FTrackUIManagerImpl::GenerateFtrackToolbarMenu()
 	const bool bShouldCloseWindowAfterMenuSelection = true;
 	FMenuBuilder MenuBuilder(bShouldCloseWindowAfterMenuSelection, nullptr);
 
-	FString CommandName = "Import asset";
-	MenuBuilder.AddMenuEntry(
-		FText::FromString(CommandName),
-		FText::FromString("ftrack import asset"),
-		FSlateIcon(),
-		FExecuteAction::CreateLambda([CommandName]()
+	if (UFTrackConnect* ftrackConnect = UFTrackConnect::GetInstance())
+	{
+		TArray<FFTrackMenuItem> menuItems =  ftrackConnect->GetFtrackMenuItems();
+		for (const FFTrackMenuItem& menuItem : menuItems)
 		{
-			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
-			if (pythonPlugin)
+			if (menuItem.Type == TEXT("separator"))
 			{
-				pythonPlugin->ExecPythonCommand(_T("openImportAssetDialog()"));
+				MenuBuilder.AddMenuSeparator();
 			}
-		})
-	);
+			else 
+			{
+				FString CommandName = menuItem.Name;
+				MenuBuilder.AddMenuEntry(
+					FText::FromString(menuItem.DisplayName),
+					FText::FromString(menuItem.Description),
+					FSlateIcon(),
+					FExecuteAction::CreateLambda([CommandName]()
+					{
+						if (UFTrackConnect* ftrackConnect = UFTrackConnect::GetInstance())
+						{
+							ftrackConnect->ExecuteCommand(CommandName);
+						}
+					})
+				);
+			}
+		}
+	}
 
-	MenuBuilder.AddMenuSeparator();
-	CommandName = "Asset manager";
-	MenuBuilder.AddMenuEntry(
-		FText::FromString(CommandName),
-		FText::FromString("ftrack browser"),
-		FSlateIcon(),
-		FExecuteAction::CreateLambda([CommandName]()
-		{
-			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
-			if (pythonPlugin)
-			{
-				pythonPlugin->ExecPythonCommand(_T("openAssetManagerDialog()"));
-			}
-		})
-	);
-	MenuBuilder.AddMenuSeparator();
 
-	CommandName = "Info";
-	MenuBuilder.AddMenuEntry(
-		FText::FromString(CommandName),
-		FText::FromString("ftrack info"),
-		FSlateIcon(),
-		FExecuteAction::CreateLambda([CommandName]()
-		{
-			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
-			if (pythonPlugin)
-			{
-				pythonPlugin->ExecPythonCommand(_T("openInfoDialog()"));
-			}
-		})
-	);
-
-	CommandName = "Tasks";
-	MenuBuilder.AddMenuEntry(
-		FText::FromString(CommandName),
-		FText::FromString("ftrack tasks"),
-		FSlateIcon(),
-		FExecuteAction::CreateLambda([CommandName]()
-		{
-			IPythonScriptPlugin* pythonPlugin = IPythonScriptPlugin::Get();
-			if (pythonPlugin)
-			{
-				pythonPlugin->ExecPythonCommand(_T("openTasksDialog();"));
-			}
-		})
-	);
 	return MenuBuilder.MakeWidget();
 }
 void FTrackUIManagerImpl::FillToolbar(FToolBarBuilder& ToolbarBuilder)

@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 Pinta Studios
+# :copyright: Copyright (c) 2019 ftrack
 
 import copy
 import os
@@ -11,9 +11,6 @@ import unrealcon
 from ftrack_connect.connector import (FTAssetHandlerInstance, FTAssetType,
                                       FTComponent, HelpFunctions)
 from PySide.QtGui import QMessageBox
-
-#from ftrackUnrealPlugin import ftrackAssetNode
-
 
 
 
