@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 Pinta Studios
+# :copyright: Copyright (c) 2019 ftrack
 
 import os
 import uuid
@@ -10,15 +10,21 @@ import sys
 import logging
 import argparse
 import signal
-
+import ftrack
+import ftrack_api
 import ftrack_connect.ui.theme
 
-import unreal_engine as ue
+import unreal as ue
 
 
 class Connector(maincon.Connector):
     def __init__(self):
         super(Connector, self).__init__()
+
+    @staticmethod
+    def _getTaskParentShotSequence(currentTask):
+        
+        return 
 
     @staticmethod
     def setTimeLine():
@@ -28,27 +34,15 @@ class Connector(maincon.Connector):
     @staticmethod
     def getAssets():
         '''Return the available assets in UE project, return the *componentId(s)*'''
-        allObjects = []
-        #get all UserDefinedStruct Type Uobjects in ue
-        userDefinedObjs = ue.get_assets_by_class('ftrackNodeStruct_C')
-
-        #get all ftrackdata Type from the pool above
-        for obj in userDefinedObjs:
-            try:
-                if obj.get_name().endswith('ftrackNode'): allObjects.append(obj)
-            except:
-                pass
-
-
         componentIds = []
-
-        for ftrackobj in allObjects:
-
-            assetcomponentid = ftrackobj.assetComponentId
-
-            nameInScene = ftrackobj.get_name()
-
-            componentIds.append((assetcomponentid, nameInScene))
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        for asset_data in assets:
+            #unfortunately to access the tag values objects needs to be in memory....
+            asset = asset_data.get_asset()
+            if asset and  asset_data.get_tag_value('ftrack.IntegrationVersion') != None :
+                assetComponentId = asset_data.get_tag_value('ftrack.AssetComponentId')
+                nameInScene = str(asset.get_name())
+                componentIds.append((assetComponentId, nameInScene))
 
         return componentIds
 
@@ -113,7 +107,8 @@ class Connector(maincon.Connector):
         importAsset = assetHandler.getAssetClass(iAObj.assetType)
         if importAsset:
             result = importAsset.importAsset(iAObj)
-            return result
+            Connector.selectObjects(selection=result)
+            return 'imported assets ' + str(result)
         else:
             return 'assetType not supported'
 
@@ -122,36 +117,46 @@ class Connector(maincon.Connector):
     @staticmethod
     def selectObject(applicationObject=''):
         '''Select the *applicationObject*'''
-
-        ftNode = ue.find_object(applicationObject)
-
-        obj = ue.get_asset(ftNode.assetLink.split(',')[0])
-
-        ue.sync_browser_to_assets([obj],True)
+        Connector.selectObjects(selection=[applicationObject])
 
 
 
     @staticmethod
     def selectObjects(selection):
         '''Select the given *selection*'''
-        pass
-
+        selectionPathNames = []
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        for asset_data in assets:
+            #unfortunately to access the tag values objects needs to be in memory....
+            asset = asset_data.get_asset()
+            if str(asset.get_name()) in selection:
+                selectionPathNames.append(asset.get_path_name())
+        
+        ue.EditorAssetLibrary.sync_browser_to_objects(selectionPathNames)
 
     @staticmethod
     def removeObject(applicationObject=''):
         '''Remove the *applicationObject* from the scene'''
+        #first get our asset of interest
+        componentId = None
+        versionId = None
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        for asset_data in assets:
+            #unfortunately to access the tag values objects needs to be in memory....
+            asset = asset_data.get_asset()
+            if str(asset.get_name()) == applicationObject:
+                #a single asset can be represented by multiple assets in the 
+                componentId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')
+                versionId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId')
+                break
 
-        ftNode = ue.find_object(applicationObject)
-
-        assetLinks = ftNode.assetLink.split(',')
-
-        for asset in assetLinks:
-            ue.delete_asset(asset)
-
-        try:
-            ue.delete_asset(ftNode.get_full_name().split()[1])
-        except Exception as error:
-            print error
+        if componentId != None and versionId != None:
+            for asset_data in assets:
+                #unfortunately to access the tag values objects needs to be in memory....
+                asset = asset_data.get_asset()
+                if ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetComponentId')  == componentId and \
+                    ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId')  == versionId:
+                    ue.EditorAssetLibrary.delete_asset(asset.get_path_name())
 
 
     @staticmethod
@@ -164,7 +169,7 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            print 'assetType not supported'
+            print('assetType not supported')
             return False
 
     @staticmethod
@@ -176,7 +181,13 @@ class Connector(maincon.Connector):
     @staticmethod
     def getSelectedAssets():
         '''Return the selected assets'''
-        pass
+        componentIds = []
+        selectedAssets = ue.EditorUtilityLibrary.get_selected_assets()
+        for asset in selectedAssets:
+            assetComponentId = ue.EditorAssetLibrary.get_metadata_tag(asset,'ftrack.AssetComponentId')
+            if assetComponentId != None:
+                componentIds.append((assetComponentId, str(asset.get_name())))
+        return componentIds
 
 
     @staticmethod
@@ -214,6 +225,6 @@ class Connector(maincon.Connector):
     @classmethod
     def registerAssets(cls):
         '''Register all the available assets'''
-        import ftrack_connect_unreal.connector.unrealassets
-        ftrack_connect_unreal.connector.unrealassets.registerAssetTypes()
+        import ftrack_connect_unreal_engine.connector.unrealassets
+        ftrack_connect_unreal_engine.connector.unrealassets.registerAssetTypes()
         super(Connector, cls).registerAssets()

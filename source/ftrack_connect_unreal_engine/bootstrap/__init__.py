@@ -1,4 +1,4 @@
 # :coding: utf-8
 # :copyright: Copyright (c) 2019 ftrack
 
-from ._version import __version__
+import unreal_ftrack_connect

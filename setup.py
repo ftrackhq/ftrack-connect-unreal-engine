@@ -1,5 +1,5 @@
 # :coding: utf-8
-# :copyright: Copyright (c) 2018 Pinta Studios
+# :copyright: Copyright (c) 2019 ftrack
 
 
 import os
@@ -29,7 +29,6 @@ STAGING_PATH = os.path.join(BUILD_PATH, PLUGIN_NAME)
 
 HOOK_PATH = os.path.join(RESOURCE_PATH, 'hook')
 
-UNREAL_SCRIPT_PATH = os.path.join(RESOURCE_PATH, 'scripts')
 UNREAL_ICON_PATH = os.path.join(RESOURCE_PATH, 'icon')
 UNREAL_PLUGINS_PATH = os.path.join(RESOURCE_PATH, 'plugins')
 
@@ -81,12 +80,6 @@ class BuildPlugin(Command):
         # Clean staging path
         shutil.rmtree(STAGING_PATH, ignore_errors=True)
 
-        # Copy scripts files
-        shutil.copytree(
-            UNREAL_SCRIPT_PATH,
-            os.path.join(STAGING_PATH, 'resource', 'script')
-        )
-
         # Copy plugin files
         shutil.copytree(
             UNREAL_PLUGINS_PATH,
@@ -98,11 +91,16 @@ class BuildPlugin(Command):
             UNREAL_ICON_PATH,
             os.path.join(STAGING_PATH, 'resource', 'icon')
         )
-
         # Copy hook files
         shutil.copytree(
             HOOK_PATH,
             os.path.join(STAGING_PATH, 'hook')
+        )
+
+        # Copy readme file
+        shutil.copyfile(
+            README_PATH,
+            os.path.join(STAGING_PATH, 'README.md')
         )
 
         # Install local dependencies
@@ -115,6 +113,7 @@ class BuildPlugin(Command):
                 '--process-dependency-links'
             ]
         )
+
 
         # Generate plugin zip
         shutil.make_archive(
@@ -135,18 +134,21 @@ setup(
     long_description=open(README_PATH).read(),
     keywords='',
     url='https://bitbucket.org/taotang123/ftrack-connect-unreal/',
-    author='pinta',
+    author='ftrack',
     author_email='support@ftrack.com',
     license='Apache License (2.0)',
     packages=find_packages(SOURCE_PATH),
     package_dir={
         '': 'source'
     },
+    package_data={'': ['*.ico']},
     setup_requires=[
-        'qtext',
         'sphinx >= 1.2.2, < 2',
         'sphinx_rtd_theme >= 0.1.6, < 2',
         'lowdown >= 0.1.0, < 1'
+    ],
+    install_requires=[
+        'appdirs',
     ],
     tests_require=[
         'pytest >= 2.3.5, < 3',
@@ -154,8 +156,5 @@ setup(
     cmdclass={
         'test': PyTest,
         'build_plugin': BuildPlugin,
-    },
-    dependency_links=[
-        'git+https://bitbucket.org/ftrack/qtext/get/0.2.1.zip#egg=QtExt-0.2.1'
-    ]
+    }
 )

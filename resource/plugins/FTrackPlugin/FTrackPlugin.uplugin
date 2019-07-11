@@ -1,0 +1,34 @@
+{
+    "FileVersion": 1,
+    "Version": 1,
+    "VersionName": "0.1",
+    "FriendlyName": "ftrack plugin",
+    "Description": "ftrack plugin used to add menu hooks inside Unreal editor and settings.",
+    "Category": "Production",
+    "CreatedBy": "ftrack",
+    "CreatedByURL": "https://www.ftrack.com/",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "EnabledByDefault": true,
+    "CanContainContent": true,
+    "IsBetaVersion": true,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "FTrackPlugin",
+            "Type": "Developer",
+            "LoadingPhase": "Default"
+        }
+    ],
+    "Plugins": [
+        {
+            "Name": "PythonScriptPlugin",
+            "Enabled": true
+        },
+        {
+            "Name": "EditorScriptingUtilities",
+            "Enabled": true
+        }
+    ]
+}
