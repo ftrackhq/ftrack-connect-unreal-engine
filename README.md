@@ -23,5 +23,5 @@ Installation
 
 Done!
 ------------
-* Launch ftrack connect and choose a project and a task now you should see Unreal Engine's action icon. 
+* Launch ftrack connect and choose a project and a task now you should see Unreal Engine's launcher icon. 
 * Launch Unreal Engine then Launch your project and you should see ftrack in the toolbar
