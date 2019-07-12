@@ -29,7 +29,46 @@ class Connector(maincon.Connector):
     @staticmethod
     def setTimeLine():
         '''Set time line to FS , FE environment values'''
-        pass
+        currentTask = ftrack.Task(os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID'))
+        session = ftrack_api.Session()
+        linksForTask = session.query(
+            'select link from Task where name is "'+ currentTask.getName() + '"'
+        ).first()['link']
+        #Remove task itself
+        linksForTask.pop() 
+        linksForTask.reverse()
+        hasShotSequenceParent = False
+        shotEntity = None
+        for item in linksForTask:
+            entity = session.get(item['type'], item['id'])
+            if entity.__class__.__name__ == 'Shot' or entity.__class__.__name__ == 'Sequence':
+                hasShotSequenceParent = True
+                break
+
+        if hasShotSequenceParent:
+            #For prototype let's assume it has no shot parent
+            #This is for the current frame range
+            frameStart = os.getenv('FS')
+            frameEnd = os.getenv('FE')
+            sequenceShotInfo = []
+
+            masterSequence = ue.FTrackConnect.get_instance().create_master_sequence("MasterSequence", str(sequenceShotInfo))
+            print("connect instance " + str(masterSequence))
+            #movieScene = masterSequence.get_editor_property('MovieScene')
+            #print("movie scene " + str(movieScene))
+
+            print("frame range " + str(frameStart) + " " + str(frameEnd))
+
+
+        #Is the current task under a shot/sequence? 
+        #   Does the project contain a map for the current sequence
+        #       Load it if not already loaded
+        #   else create it
+        #   Is the current level in the current sequence
+        #       If it has a current master sequence 
+        #           Ensure that its lenght matches and jump to current shot range
+        #
+        #If False nothing to do
 
     @staticmethod
     def getAssets():

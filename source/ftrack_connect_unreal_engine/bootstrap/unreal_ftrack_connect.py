@@ -92,6 +92,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
         ftrackContext.external_init()
         ftrackContext.connector.registerAssets()
+        ftrackContext.connector.setTimeLine()
 
         os.sys.excepthook = ue_exception
         app = QApplication.instance()

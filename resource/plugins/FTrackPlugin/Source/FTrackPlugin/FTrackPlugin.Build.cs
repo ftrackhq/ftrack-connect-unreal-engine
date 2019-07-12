@@ -12,16 +12,21 @@ namespace UnrealBuildTool.Rules
                 new string[]
                 {
                     "AssetRegistry",
+                    "AssetTools",
                     "ContentBrowser",
                     "Core",
                     "CoreUObject",
                     "EditorStyle",
                     "Engine",
                     "LevelEditor",
+                    "LevelSequence",
+                    "MovieScene",
+                    "MovieSceneTracks",
                     "PythonScriptPlugin",
                     "Settings",
                     "Slate",
                     "SlateCore",
+                    "UnrealEd",
                 }
             );
         }
