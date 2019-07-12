@@ -17,41 +17,7 @@ import ftrack_connect.ui.theme
 
 import unreal as ue
 
-# Install the ftrack logging handlers
-ftrack_connect.config.configure_logging('ftrack_connect_unreal', level='INFO')
 
-# class Logger(object):
-#     """
-#     This class provides logging interface similar to the ftrack logger.
-#     Messages are printed to the UE4 log, but also to the ftrack logger.
-#     """
-#     # Create our logger
-#     _ftrack_logger = logging.getLogger('ftrack_connect_unreal')
-    
-#     @classmethod
-#     def debug(cls, msg):
-#         ue.log(msg)
-#         cls._do_log(msg, 'debug')
-
-#     @classmethod
-#     def error(cls, msg):
-#         ue.log_error(msg)
-#         cls._do_log(msg, 'error')
-    
-#     @classmethod
-#     def info(cls, msg):
-#         ue.log(msg)
-#         cls._do_log(msg, 'info')
-
-#     @classmethod
-#     def warning(cls, msg):
-#         ue.log_warning(msg)
-#         cls._do_log(msg, 'warning')
-
-#     @classmethod
-#     def _do_log(cls, msg, level):
-#         ftrack_logger_method = getattr(cls._ftrack_logger, level)
-#         ftrack_logger_method(msg)
 
 class Connector(maincon.Connector):
     def __init__(self):
