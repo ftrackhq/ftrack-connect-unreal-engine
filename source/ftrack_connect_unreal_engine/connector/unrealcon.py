@@ -22,13 +22,7 @@ class Connector(maincon.Connector):
         super(Connector, self).__init__()
 
     @staticmethod
-    def _getTaskParentShotSequence(currentTask):
-        
-        return 
-
-    @staticmethod
-    def setTimeLine():
-        '''Set time line to FS , FE environment values'''
+    def _getTaskParentShotSequence():
         currentTask = ftrack.Task(os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID'))
         session = ftrack_api.Session()
         linksForTask = session.query(
@@ -37,38 +31,64 @@ class Connector(maincon.Connector):
         #Remove task itself
         linksForTask.pop() 
         linksForTask.reverse()
-        hasShotSequenceParent = False
-        shotEntity = None
+        parentShotSequence = None
+
         for item in linksForTask:
             entity = session.get(item['type'], item['id'])
             if entity.__class__.__name__ == 'Shot' or entity.__class__.__name__ == 'Sequence':
-                hasShotSequenceParent = True
+                parentShotSequence = entity
                 break
 
-        if hasShotSequenceParent:
-            #For prototype let's assume it has no shot parent
-            #This is for the current frame range
-            frameStart = os.getenv('FS')
-            frameEnd = os.getenv('FE')
-            sequenceShotInfo = []
+        return parentShotSequence
 
-            masterSequence = ue.FTrackConnect.get_instance().create_master_sequence("MasterSequence", str(sequenceShotInfo))
-            print("connect instance " + str(masterSequence))
-            #movieScene = masterSequence.get_editor_property('MovieScene')
-            #print("movie scene " + str(movieScene))
+    @staticmethod
+    def _getLoadedLevelSequence():
+        masterLevSeq = None
+        actors = ue.EditorLevelLibrary.get_all_level_actors()
+        for actor in actors:
+            if actor.static_class() == ue.LevelSequenceActor.static_class():
+                masterLevSeq = actor.load_sequence()
+                break
+        return masterLevSeq
 
-            print("frame range " + str(frameStart) + " " + str(frameEnd))
+    @staticmethod
+    def _loadOrCreateMasterSequence( \
+            sequenceName = 'TmpSequence', \
+            sequenceTarget = '/Game'):
+        masterSequence = Connector._getLoadedLevelSequence()
+        if masterSequence == None:
+            pass
+            #for now do not create new sequencer based of the information in ftrack but rather
+            #assume already it is well setup
+            # fn = ue.LevelSequenceFactoryNew()
+            # at = ue.AssetToolsHelpers.get_asset_tools()
+            # masterSequence = at.create_asset(sequenceName, sequenceTarget, 
+            #                     ue.LevelSequence.static_class(), fn)
+            # if masterSequence:
+            #     masterSequence.add_master_track( \
+            #         ue.MovieSceneCinematicShotTrack().static_class())
 
+            # newActor = ue.EditorLevelLibrary.spawn_actor_from_object( \
+            #                 masterSequence, [0,0,0])
 
-        #Is the current task under a shot/sequence? 
-        #   Does the project contain a map for the current sequence
-        #       Load it if not already loaded
-        #   else create it
-        #   Is the current level in the current sequence
-        #       If it has a current master sequence 
-        #           Ensure that its lenght matches and jump to current shot range
-        #
-        #If False nothing to do
+        return masterSequence
+
+    @staticmethod
+    def setTimeLine():
+        '''Set time line to FS , FE environment values'''
+        
+        if not Connector._getTaskParentShotSequence():
+            return
+
+        #For prototype let's assume it has no shot parent
+        #This is for the current frame range
+        viewFrameStart = os.getenv('FS')
+        viewFrameEnd = os.getenv('FE')
+
+        masterSequence = Connector._loadOrCreateMasterSequence()
+        if masterSequence:
+            masterSequence.set_playback_start(int(viewFrameStart))
+            masterSequence.set_playback_end(int(viewFrameEnd))
 
     @staticmethod
     def getAssets():
