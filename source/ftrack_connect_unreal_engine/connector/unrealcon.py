@@ -4,6 +4,7 @@
 import os
 import uuid
 
+import ftrack_connect.config
 from ftrack_connect.connector import base as maincon
 from ftrack_connect.connector import FTAssetHandlerInstance
 import sys
@@ -15,6 +16,7 @@ import ftrack_api
 import ftrack_connect.ui.theme
 
 import unreal as ue
+
 
 
 class Connector(maincon.Connector):
@@ -228,7 +230,7 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            print('assetType not supported')
+            logging.error('assetType not supported')
             return False
 
     @staticmethod

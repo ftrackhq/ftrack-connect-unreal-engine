@@ -10,7 +10,7 @@ import unreal as ue
 import unrealcon
 from ftrack_connect.connector import (FTAssetHandlerInstance, FTAssetType,
                                       FTComponent, HelpFunctions)
-from PySide.QtGui import QMessageBox
+from QtExt.QtGui import QMessageBox
 
 
 
@@ -47,7 +47,7 @@ class GenericAsset(FTAssetType):
         try:
             self.addMetaData(iAObj,imported_asset)
         except Exception as error:
-            print(error)
+            logging.error(error)
 
         return importedAssetNames
 
@@ -198,7 +198,7 @@ class RigAsset(GenericAsset):
         try:
             ftrack_old_node=self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
-            print(error)
+            logging.error(error)
 
         importedAssetNames = []
         if ftrack_old_node!=None:
@@ -208,16 +208,18 @@ class RigAsset(GenericAsset):
             msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
             msgBox.setDefaultButton(QMessageBox.No)
             ret = msgBox.exec_()
+            old_node_name = str(ftrack_old_node.get_name())
 
             if ret==QMessageBox.Yes:
-                print('Yes pressed')
                 #Delete old asset
-                self.changeVersion(iAObj,ftrack_old_node.get_name())
-                importedAssetNames.append(str(ftrack_old_node.get_name()))
-
+                self.changeVersion(iAObj,old_node_name)
+                importedAssetNames.append(old_node_name)
+                logging.info('Changed version of existing asset ' +
+                                old_node_name)
 
             elif ret == QMessageBox.No:
-                print('No pressed')
+                logging.info('Not changing version of existing asset ' +
+                                old_node_name)
 
 
         else:
@@ -254,7 +256,7 @@ class RigAsset(GenericAsset):
                 self.addMetaData(iAObj, mesh_skeleton)
                 self.addMetaData(iAObj, mesh_physics_asset)
             except Exception as error:
-                print(error)
+                logging.error(error)
 
             return importedAssetNames
 
@@ -356,7 +358,7 @@ class AnimationAsset(GenericAsset):
         try:
             ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
-            print(error)
+            logging.error(error)
 
         importedAssetNames = []
         if ftrack_old_node!=None:
@@ -366,15 +368,18 @@ class AnimationAsset(GenericAsset):
             msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             msgBox.setDefaultButton(QMessageBox.No)
             ret = msgBox.exec_()
+            old_node_name = str(ftrack_old_node.get_name())
         
             if ret == QMessageBox.Yes:
-                print('Yes pressed')
                 # Delete old asset
-                self.changeVersion(iAObj, str(ftrack_old_node.get_name()))
-                importedAssetNames.append(str(ftrack_old_node.get_name()))
+                self.changeVersion(iAObj, old_node_name)
+                importedAssetNames.append(old_node_name)
+                logging.info('Changed version of existing asset ' + 
+                            old_node_name)
         
             elif ret == QMessageBox.No:
-                print('No pressed')
+                logging.info('Not changing version of existing asset ' + 
+                            old_node_name)
 
         else:
             task = self._get_asset_import_task()
@@ -400,7 +405,7 @@ class AnimationAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj,loaded_anim)
             except Exception as error:
-                print(error)
+                logging.error(error)
 
 
         return importedAssetNames
@@ -493,7 +498,7 @@ class GeometryAsset(GenericAsset):
         try:
             ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
         except Exception as error:
-            print(error)
+            logging.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -503,15 +508,18 @@ class GeometryAsset(GenericAsset):
             msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             msgBox.setDefaultButton(QMessageBox.No)
             ret = msgBox.exec_()
+            old_node_name = str(ftrack_old_node.get_name())
 
             if ret == QMessageBox.Yes:
-                print('Yes pressed')
                 # Delete old asset
-                self.changeVersion(iAObj, str(ftrack_old_node.get_name()))
-                importedAssetNames.append(str(ftrack_old_node.get_name()))
+                self.changeVersion(iAObj, old_node_name)
+                importedAssetNames.append(old_node_name)
+                logging.info('Changed version of existing asset ' + 
+                            old_node_name)
 
             elif ret == QMessageBox.No:
-                print('No pressed')
+                logging.info('Not changing version of existing asset ' +
+                                old_node_name)
 
         else:
             task = self._get_asset_import_task()
@@ -527,7 +535,7 @@ class GeometryAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj, loaded_mesh)
             except Exception as error:
-                print(error)
+                logging.error(error)
 
         return importedAssetNames
 

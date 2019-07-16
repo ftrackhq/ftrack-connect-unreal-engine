@@ -17,13 +17,6 @@ from ftrack_connect_unreal_engine.ui.tasks import FtrackTasksDialog
 from QtExt import QtGui
 from QtExt.QtGui import QApplication
 
-unreal.log("Loading ftrack connect for Unreal from {}".format(__file__))
-
-def ue_exception(_type, value, back):
-    unreal.log_error(value)
-    tb_lines = traceback.format_exception(_type, value, back)
-    for line in tb_lines:
-        unreal.log_error(line)
 
 class Command(object):
     """
@@ -94,7 +87,6 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         ftrackContext.connector.registerAssets()
         ftrackContext.connector.setTimeLine()
 
-        os.sys.excepthook = ue_exception
         app = QApplication.instance()
         if app is None:
             app = QApplication([])
@@ -113,9 +105,9 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         for tag in ftrackContext.tags:
             self.add_global_tag_in_asset_registry(tag)
 
-        ftrack_connect.config.configure_logging(
-            'ftrack_connect_unreal', level='WARNING'
-        )
+        # Install the ftrack logging handlers
+        ftrack_connect.config.configure_logging('ftrack_connect_unreal', level='INFO')
+
         self.on_connect_initialized()
  
 
@@ -141,10 +133,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         for command in ftrackContext.commands:
             if command.name == command_name:
                 if command.commandType == "dialog":
-                    #ensure content is refreshed
-                    from ftrack_connect.connector import panelcom
-                    panelComInstance = panelcom.PanelComInstance.instance()
-                    panelComInstance.refreshListeners()
+                    logging.info('Executing command' + command.name)
                     self._open_dialog(command.userData,command.displayName)
                     break
         

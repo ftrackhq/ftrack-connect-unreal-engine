@@ -52,6 +52,9 @@ class LaunchApplicationAction(object):
 
         Unreal can be launched only if the selection is Project.
         '''
+        if not selection:
+            return False
+
         if (len(selection) != 1 or selection[0]['entityType'] != 'task'):
             return False
     
@@ -132,7 +135,7 @@ class LaunchApplicationAction(object):
         )
 
         context = event['data'].copy()
-        context['source'] = event['source']#Martin to check doc :-) https://help.ftrack.com/developing-with-ftrack/key-concepts/events
+        context['source'] = event['source']
 
         return self.launcher.launch(
             applicationIdentifier, context
