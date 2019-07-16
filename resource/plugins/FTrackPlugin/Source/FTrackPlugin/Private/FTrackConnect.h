@@ -6,7 +6,6 @@
 
 #include "FTrackConnect.generated.h"
 
-
 USTRUCT(Blueprintable)
 struct FFTrackMenuItem
 {
