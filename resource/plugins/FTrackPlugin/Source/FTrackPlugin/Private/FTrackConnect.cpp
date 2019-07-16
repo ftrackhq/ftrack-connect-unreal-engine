@@ -48,5 +48,3 @@ void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString& tag) const
 	}
 #endif
 }
-
-
