@@ -3,7 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "AssetData.h"
-#include "LevelSequence/Public/LevelSequence.h"
 
 #include "FTrackConnect.generated.h"
 
@@ -64,9 +63,5 @@ public:
 	// Add global tag in asset registry, this is used to facilitate query of assets
 	UFUNCTION(BlueprintCallable, Category = Python)
 	void AddGlobalTagInAssetRegistry(const FString& tag) const;
-
-	// Add global tag in asset registry, this is used to facilitate query of assets
-	UFUNCTION(BlueprintCallable, Category = Python)
-	ULevelSequence* CreateMasterSequence(const FString& sequenceName, const FString& shotInfo) const;
 
 };

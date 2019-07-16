@@ -9,10 +9,6 @@
 #include "Misc/Paths.h"
 #include "Templates/Casts.h"
 #include "UObject/UObjectHash.h"
-#include "Factories/Factory.h"
-#include "LevelEditor/Public/LevelEditor.h"
-#include "AssetTools/Public/AssetToolsModule.h"
-#include "Tracks/MovieSceneCinematicShotTrack.h"
 
 UFTrackConnect* UFTrackConnect::GetInstance()
 {
@@ -53,58 +49,4 @@ void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString& tag) const
 #endif
 }
 
-ULevelSequence* UFTrackConnect::CreateMasterSequence(const FString& sequenceName, const FString& shotInfo) const
-{
-	ULevelSequence* masterSequence = NULL;
-	
 
-	FString MasterSequencePackagePath = "Tmp";
-	IAssetTools& AssetTools = FModuleManager::GetModuleChecked<FAssetToolsModule>("AssetTools").Get();
-	UObject* NewAsset = nullptr;
-	for (TObjectIterator<UClass> It ; It ; ++It)
-	{
-		UClass* CurrentClass = *It;
-		if (CurrentClass->IsChildOf(UFactory::StaticClass()) && !(CurrentClass->HasAnyClassFlags(CLASS_Abstract)))
-		{
-			UFactory* Factory = Cast<UFactory>(CurrentClass->GetDefaultObject());
-			if (Factory->CanCreateNew() && Factory->ImportPriority >= 0 && Factory->SupportedClass == ULevelSequence::StaticClass())
-			{
-				masterSequence = Cast<ULevelSequence>(AssetTools.CreateAsset(sequenceName, "/Game/Cinematic", ULevelSequence::StaticClass(), Factory));
-				break;
-			}
-		}
-	}
-
-	UMovieSceneCinematicShotTrack* ShotTrack = masterSequence->GetMovieScene()->AddMasterTrack<UMovieSceneCinematicShotTrack>();
-
-	FFrameRate TickResolution = masterSequence->GetMovieScene()->GetTickResolution();
-
-	// Create shots with a camera cut and a camera for each
-	/*FFrameNumber SequenceStartTime = (ProjectSettings->DefaultStartTime * TickResolution).FloorToFrame();
-	FFrameNumber ShotStartTime = SequenceStartTime;
-	FFrameNumber ShotEndTime   = ShotStartTime;
-	int32        ShotDuration  = (ProjectSettings->DefaultDuration * TickResolution).RoundToFrame().Value;
-	FString FirstShotName; 
-	for (uint32 ShotIndex = 0; ShotIndex < NumShots; ++ShotIndex)
-	{
-		ShotEndTime += ShotDuration;
-
-		FString ShotName = MovieSceneToolHelpers::GenerateNewShotName(ShotTrack->GetAllSections(), ShotStartTime);
-		FString ShotPackagePath = MovieSceneToolHelpers::GenerateNewShotPath(MasterSequence->GetMovieScene(), ShotName);
-
-		if (ShotIndex == 0)
-		{
-			FirstShotName = ShotName;
-		}
-
-		AddShot(ShotTrack, ShotName, ShotPackagePath, ShotStartTime, ShotEndTime, AssetToDuplicate, FirstShotName);
-		GetSequencer()->ResetToNewRootSequence(*MasterSequence);
-
-		ShotStartTime = ShotEndTime;
-	}
-
-	MasterSequence->GetMovieScene()->SetPlaybackRange(SequenceStartTime, (ShotEndTime - SequenceStartTime).Value);*/
-
-
-	return masterSequence;
-}
