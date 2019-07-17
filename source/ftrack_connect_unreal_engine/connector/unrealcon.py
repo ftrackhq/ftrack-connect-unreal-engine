@@ -18,7 +18,6 @@ import ftrack_connect.ui.theme
 import unreal as ue
 
 
-
 class Connector(maincon.Connector):
     def __init__(self):
         super(Connector, self).__init__()
@@ -54,23 +53,23 @@ class Connector(maincon.Connector):
         return masterLevSeq
 
     @staticmethod
-    def _loadOrCreateMasterSequence( \
-            sequenceName = 'TmpSequence', \
-            sequenceTarget = '/Game'):
+    def _loadOrCreateMasterSequence(
+            sequenceName='TmpSequence',
+            sequenceTarget='/Game'):
         masterSequence = Connector._getLoadedLevelSequence()
-        if masterSequence == None:
+        if masterSequence is None:
             pass
-            #for now do not create new sequencer based of the information in ftrack but rather
-            #assume already it is well setup
+            # for now do not create new sequencer based of the information in
+            # ftrack but rather assume already it is well setup
             # fn = ue.LevelSequenceFactoryNew()
             # at = ue.AssetToolsHelpers.get_asset_tools()
-            # masterSequence = at.create_asset(sequenceName, sequenceTarget, 
+            # masterSequence = at.create_asset(sequenceName, sequenceTarget,
             #                     ue.LevelSequence.static_class(), fn)
             # if masterSequence:
-            #     masterSequence.add_master_track( \
+            #     masterSequence.add_master_track(
             #         ue.MovieSceneCinematicShotTrack().static_class())
 
-            # newActor = ue.EditorLevelLibrary.spawn_actor_from_object( \
+            # newActor = ue.EditorLevelLibrary.spawn_actor_from_object(
             #                 masterSequence, [0,0,0])
 
         return masterSequence
@@ -78,7 +77,7 @@ class Connector(maincon.Connector):
     @staticmethod
     def setTimeLine():
         '''Set time line to FS , FE environment values'''
-        
+
         if not Connector._getTaskParentShotSequence():
             return
 
@@ -91,6 +90,10 @@ class Connector(maincon.Connector):
         if masterSequence:
             masterSequence.set_playback_start(int(viewFrameStart))
             masterSequence.set_playback_end(int(viewFrameEnd))
+        else:
+            logging.info(
+                'No LevelSequence were found in the current map' +
+                ' therefore time range cannot be set.')
 
     @staticmethod
     def getAssets():
