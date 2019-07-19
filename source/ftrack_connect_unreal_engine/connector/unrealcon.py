@@ -23,8 +23,14 @@ class Connector(maincon.Connector):
         super(Connector, self).__init__()
 
     @staticmethod
+    def getCurrentEntity():
+        return ftrack.Task(
+                os.getenv('FTRACK_TASKID'),
+                os.getenv('FTRACK_SHOTID'))
+
+    @staticmethod
     def _getTaskParentShotSequence():
-        currentTask = ftrack.Task(os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID'))
+        currentTask = Connector.getCurrentEntity()
         session = ftrack_api.Session()
         linksForTask = session.query(
             'select link from Task where name is "'+ currentTask.getName() + '"'
@@ -195,7 +201,7 @@ class Connector(maincon.Connector):
             asset = asset_data.get_asset()
             if str(asset.get_name()) in selection:
                 selectionPathNames.append(asset.get_path_name())
-        
+
         ue.EditorAssetLibrary.sync_browser_to_objects(selectionPathNames)
 
     @staticmethod
@@ -262,7 +268,16 @@ class Connector(maincon.Connector):
     @staticmethod
     def publishAsset(iAObj=None):
         '''Publish the asset provided by *iAObj*'''
-        pass
+        masterSequence = Connector._getLoadedLevelSequence()
+        if masterSequence is None:
+            return [], 'no sequence available in current map to allow render'
+        assetHandler = FTAssetHandlerInstance.instance()
+        pubAsset = assetHandler.getAssetClass(iAObj.assetType)
+        if pubAsset:
+            publishedComponents, message = pubAsset.publishAsset(iAObj, masterSequence)
+            return publishedComponents, message
+        else:
+            return [], 'assetType not supported'
 
     @staticmethod
     def getConnectorName():
