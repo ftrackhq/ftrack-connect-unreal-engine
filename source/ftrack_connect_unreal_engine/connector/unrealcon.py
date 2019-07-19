@@ -18,20 +18,82 @@ import ftrack_connect.ui.theme
 import unreal as ue
 
 
-
 class Connector(maincon.Connector):
     def __init__(self):
         super(Connector, self).__init__()
 
     @staticmethod
-    def _getTaskParentShotSequence(currentTask):
-        
-        return 
+    def _getTaskParentShotSequence():
+        currentTask = ftrack.Task(os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID'))
+        session = ftrack_api.Session()
+        linksForTask = session.query(
+            'select link from Task where name is "'+ currentTask.getName() + '"'
+        ).first()['link']
+        #Remove task itself
+        linksForTask.pop() 
+        linksForTask.reverse()
+        parentShotSequence = None
+
+        for item in linksForTask:
+            entity = session.get(item['type'], item['id'])
+            if entity.__class__.__name__ == 'Shot' or entity.__class__.__name__ == 'Sequence':
+                parentShotSequence = entity
+                break
+
+        return parentShotSequence
+
+    @staticmethod
+    def _getLoadedLevelSequence():
+        masterLevSeq = None
+        actors = ue.EditorLevelLibrary.get_all_level_actors()
+        for actor in actors:
+            if actor.static_class() == ue.LevelSequenceActor.static_class():
+                masterLevSeq = actor.load_sequence()
+                break
+        return masterLevSeq
+
+    @staticmethod
+    def _loadOrCreateMasterSequence(
+            sequenceName='TmpSequence',
+            sequenceTarget='/Game'):
+        masterSequence = Connector._getLoadedLevelSequence()
+        if masterSequence is None:
+            pass
+            # for now do not create new sequencer based of the information in
+            # ftrack but rather assume already it is well setup
+            # fn = ue.LevelSequenceFactoryNew()
+            # at = ue.AssetToolsHelpers.get_asset_tools()
+            # masterSequence = at.create_asset(sequenceName, sequenceTarget,
+            #                     ue.LevelSequence.static_class(), fn)
+            # if masterSequence:
+            #     masterSequence.add_master_track(
+            #         ue.MovieSceneCinematicShotTrack().static_class())
+
+            # newActor = ue.EditorLevelLibrary.spawn_actor_from_object(
+            #                 masterSequence, [0,0,0])
+
+        return masterSequence
 
     @staticmethod
     def setTimeLine():
         '''Set time line to FS , FE environment values'''
-        pass
+
+        if not Connector._getTaskParentShotSequence():
+            return
+
+        #For prototype let's assume it has no shot parent
+        #This is for the current frame range
+        viewFrameStart = os.getenv('FS')
+        viewFrameEnd = os.getenv('FE')
+
+        masterSequence = Connector._loadOrCreateMasterSequence()
+        if masterSequence:
+            masterSequence.set_playback_start(int(viewFrameStart))
+            masterSequence.set_playback_end(int(viewFrameEnd))
+        else:
+            logging.info(
+                'No LevelSequence were found in the current map' +
+                ' therefore time range cannot be set.')
 
     @staticmethod
     def getAssets():

@@ -85,6 +85,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
         ftrackContext.external_init()
         ftrackContext.connector.registerAssets()
+        ftrackContext.connector.setTimeLine()
 
         app = QApplication.instance()
         if app is None:
