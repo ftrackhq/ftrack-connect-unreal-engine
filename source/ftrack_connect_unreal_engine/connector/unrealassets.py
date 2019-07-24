@@ -135,7 +135,7 @@ class GenericAsset(FTAssetType):
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
         movie_name = str(iAObj.assetName) + '_reviewable'
-        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name, False)
+        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name)
         if rendered:
             publishedComponents.append(
                 FTComponent(
@@ -178,7 +178,7 @@ class GenericAsset(FTAssetType):
         #location.
         session = ftrack_api.Session()
         linksForTask = session.query(
-            'select link from Task where name is "'+ task.getName() + '"'
+            'select link from Task where id is "'+ task.getId() + '"'
         ).first()['link']
         relative_path = ""
         #remove the project
@@ -218,6 +218,7 @@ class GenericAsset(FTAssetType):
         if linked_obj:
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersion", iAObj.assetVersion)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetPath", iAObj.filePath)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetName", iAObj.assetName)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.ComponentName", iAObj.componentName)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetType", iAObj.assetType)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetId", iAObj.assetId)
@@ -380,6 +381,17 @@ class RigAsset(GenericAsset):
                         return True
         return False
 
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
 
     @staticmethod
     def importOptions():
@@ -527,6 +539,18 @@ class AnimationAsset(GenericAsset):
         return False
 
     @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
+
+    @staticmethod
     def importOptions():
         '''Return import options for the component'''
         xml = '''
@@ -634,6 +658,17 @@ class GeometryAsset(GenericAsset):
 
         return importedAssetNames
 
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
 
     @staticmethod
     def importOptions():
@@ -648,6 +683,22 @@ class GeometryAsset(GenericAsset):
        
         return xml
 
+class ImgSequenceAsset(GenericAsset):
+    def __init__(self):
+        super(ImgSequenceAsset, self).__init__()
+
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
+
 
 
 def registerAssetTypes():
@@ -655,6 +706,7 @@ def registerAssetTypes():
     assetHandler.registerAssetType(name="rig", cls=RigAsset)
     assetHandler.registerAssetType(name="anim", cls=AnimationAsset)
     assetHandler.registerAssetType(name="geo", cls=GeometryAsset)
+    assetHandler.registerAssetType(name="img", cls=ImgSequenceAsset)
 
 
 def upperFirst(x):

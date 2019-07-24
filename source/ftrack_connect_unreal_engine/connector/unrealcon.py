@@ -29,14 +29,13 @@ class Connector(maincon.Connector):
                 os.getenv('FTRACK_SHOTID'))
 
     @staticmethod
-    def _getTaskParentShotSequence():
-        currentTask = Connector.getCurrentEntity()
+    def _getTaskParentShotSequence(task):
         session = ftrack_api.Session()
         linksForTask = session.query(
-            'select link from Task where name is "'+ currentTask.getName() + '"'
+            'select link from Task where id is "'+ task.getId() + '"'
         ).first()['link']
         #Remove task itself
-        linksForTask.pop() 
+        linksForTask.pop()
         linksForTask.reverse()
         parentShotSequence = None
 
@@ -47,6 +46,10 @@ class Connector(maincon.Connector):
                 break
 
         return parentShotSequence
+
+    @staticmethod
+    def isTaskPartOfShotOrSequence(task):
+        return Connector._getTaskParentShotSequence(task) is not None
 
     @staticmethod
     def _getLoadedLevelSequence():
@@ -84,7 +87,7 @@ class Connector(maincon.Connector):
     def setTimeLine():
         '''Set time line to FS , FE environment values'''
 
-        if not Connector._getTaskParentShotSequence():
+        if not Connector._getTaskParentShotSequence(Connector.getCurrentEntity()):
             return
 
         #For prototype let's assume it has no shot parent
@@ -228,6 +231,25 @@ class Connector(maincon.Connector):
                     ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId')  == versionId:
                     ue.EditorAssetLibrary.delete_asset(asset.get_path_name())
 
+    @staticmethod
+    def getImportedAssetVersion(assetName, assetType, parentTaskId):
+        '''Remove the *applicationObject* from the scene'''
+        #first get our asset of interest
+        candidateVersion = None
+        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        for asset_data in assets:
+            # unfortunately to access the tag values objects needs
+            # to be in memory
+            asset = asset_data.get_asset()
+            assetInstanceName = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetName')
+            assetInstanceType = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetType')
+            if assetName == assetInstanceName and assetType == assetInstanceType:
+                currentVersion = ftrack.AssetVersion(ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetVersionId'))
+                if currentVersion.get('taskid') == parentTaskId:
+                    candidateVersion = currentVersion
+                    break
+
+        return candidateVersion
 
     @staticmethod
     def changeVersion(applicationObject=None, iAObj=None):

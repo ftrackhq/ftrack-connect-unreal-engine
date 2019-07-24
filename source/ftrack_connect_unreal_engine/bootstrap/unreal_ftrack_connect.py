@@ -153,9 +153,11 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         '''Open *dialog_class* and create if not already existing.'''
         dialog_name = dialog_class
 
-        if dialog_name == FtrackImportAssetDialog and dialog_name in ftrackContext.dialogs:
+        if (dialog_name == FtrackImportAssetDialog or
+            dialog_name == FtrackPublishDialog) \
+            and dialog_name in ftrackContext.dialogs:
             ftrackContext.dialogs[dialog_name].deleteLater()
-            ftrackContext.dialogs[dialog_name]=None
+            ftrackContext.dialogs[dialog_name] = None
             del ftrackContext.dialogs[dialog_name]
 
         if dialog_name not in ftrackContext.dialogs:

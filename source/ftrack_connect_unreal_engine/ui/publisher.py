@@ -157,7 +157,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         taskId = task.getId()
         shot = self.exportAssetOptionsWidget.getShot()
 
-        assettype = self.exportAssetOptionsWidget.getAssetType()
+        assetType = self.exportAssetOptionsWidget.getAssetType()
         assetName = self.exportAssetOptionsWidget.getAssetName()
         status = self.exportAssetOptionsWidget.getStatus()
 
@@ -179,9 +179,35 @@ class FtrackPublishDialog(QtWidgets.QDialog):
             return
 
         self.exportOptionsWidget.setProgress(0)
-        asset = shot.createAsset(assetName, assettype) #Should we hardcode the asset tyte to render or image sequence?
+        asset = shot.createAsset(assetName, assetType)
 
         assetVersion = asset.createVersion(comment=comment, taskid=taskId)
+
+        #####
+        # get version that is in project
+        #  - given the name,type and parent task id of asset
+        # Don't need to do this for image sequences as they will not have
+        # sub-component that we need to propagate to new version.
+        if assetType != "img":
+            oldAssetVersion = Connector.getImportedAssetVersion(assetName, assetType, taskId)
+            if not oldAssetVersion:
+                self.showError("Publish failed: Selected asset not in project")
+                return
+
+            # copy over used versions and components
+            usesVersions = list(oldAssetVersion.usesVersions())
+            usesVersions.append(oldAssetVersion)
+            assetVersion.addUsesVersions(usesVersions)
+
+            oldComponents = oldAssetVersion.getComponents()
+            for oldComp in oldComponents:
+                compName = oldComp.getName()
+                if compName == 'thumbnail' or compName == 'ftrackreview-mp4':
+                    continue
+                assetVersion.createComponent(name=oldComp.getName(),
+                                             path=oldComp.getFilesystemPath())
+
+        #####
 
         pubObj = ftrack_connector.FTAssetObject(
             assetVersionId=assetVersion.getId(),
@@ -189,24 +215,23 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         )
         try:
             publishedComponents, message = self.connector.publishAsset(pubObj)
+            self.exportOptionsWidget.setProgress(80)
         except:
             self.exportOptionsWidget.setProgress(100)
             self.showError('Publish failed. Please check the console.')
             raise
 
         if publishedComponents:
-
             session = ftrack_api.Session()
             for componentNumber, ftComponent in enumerate(publishedComponents):
                 path = ftComponent.path
                 location = Connector.pickLocation(copyFiles=True)
-
                 try:
                     ftrack.Review.makeReviewable(assetVersion, path)
                     assetVersion.publish()
-
                 except Exception as error:
                     logging.error(str(error))
+            self.exportOptionsWidget.setProgress(90)
         else:
             self.exportOptionsWidget.setProgress(100)
 
@@ -224,7 +249,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                     try:
                         ftTask.setStatus(taskStatus)
                     except Exception, error:
-                        print 'warning: {0}'.format(error)
+                        logging.error('{0}'.format(error))
 
                     break
 
@@ -234,6 +259,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         self.exportAssetOptionsWidget.emitAssetType(
             self.exportAssetOptionsWidget.ui.ListAssetsComboBox.currentIndex()
         )
+        self.exportOptionsWidget.setProgress(100)
 
     def keyPressEvent(self, e):
         '''Handle Escape key press'''

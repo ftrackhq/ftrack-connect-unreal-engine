@@ -8,7 +8,9 @@ import logging
 from QtExt import QtCore, QtWidgets, QtGui
 
 import ftrack
+import ftrack_api
 from ftrack_connect.connector import FTAssetHandlerInstance
+from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 
 log = logging.getLogger(__file__)
 
@@ -168,26 +170,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
 
         self.ui.ListAssetsComboBoxModel = QtGui.QStandardItemModel()
 
-        assetTypeItem = QtGui.QStandardItem('Select AssetType')
-        self.assetTypes = []
-        self.assetTypes.append('')
-        self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
-
-        assetHandler = FTAssetHandlerInstance.instance()
-        self.assetTypesStr = sorted(assetHandler.getAssetTypes())
-
-        for assetTypeStr in self.assetTypesStr:
-            try:
-                assetType = ftrack.AssetType(assetTypeStr)
-            except:
-                log.warning(
-                    '{0} not available in ftrack'.format(assetTypeStr)
-                )
-                continue
-            assetTypeItem = QtGui.QStandardItem(assetType.getName())
-            assetTypeItem.type = assetType.getShort()
-            self.assetTypes.append(assetTypeItem.type)
-            self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
+        self.updateAssetTypes(isShot=False)
 
         self.ui.ListAssetsComboBox.setModel(self.ui.ListAssetsComboBoxModel)
 
@@ -202,6 +185,35 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetTaskComboBox.hide()
             self.ui.assetTaskLabel.hide()
 
+
+    def updateAssetTypes(self, isShot):
+        assetHandler = FTAssetHandlerInstance.instance()
+        self.assetTypesStr = sorted(assetHandler.getAssetTypes())
+        self.ui.ListAssetsComboBoxModel.blockSignals(True)
+        self.ui.ListAssetsComboBoxModel.clear()
+        assetTypeItem = QtGui.QStandardItem('Select AssetType')
+        self.assetTypes = []
+        self.assetTypes.append('')
+        self.ui.ListAssetsComboBoxModel.blockSignals(False)
+        self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
+
+        #by default p
+        for assetTypeStr in self.assetTypesStr:
+            if isShot and assetTypeStr != 'img' or not isShot and assetTypeStr == 'img':
+                continue
+            try:
+                assetType = ftrack.AssetType(assetTypeStr)
+            except:
+                log.warning(
+                    '{0} not available in ftrack'.format(assetTypeStr)
+                )
+                continue
+            assetTypeItem = QtGui.QStandardItem(assetType.getName())
+            assetTypeItem.type = assetType.getShort()
+            self.assetTypes.append(assetTypeItem.type)
+            self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
+
+
     def onAssetChanged(self, asset_name):
         '''Hanldes the asset name logic on asset change'''
         if asset_name != 'New':
@@ -210,6 +222,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         else:
             self.ui.AssetNameLineEdit.setEnabled(True)
             self.ui.AssetNameLineEdit.setText('')
+
 
     @QtCore.Slot(object)
     def updateView(self, ftrackEntity):
@@ -234,25 +247,35 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 self.ui.ListStatusComboBox.hide()
                 self.ui.assetTaskLabel_2.hide()
 
-            if self.browseMode == 'Task':
-                task = self.currentTask.getParent()
-
-            assets = task.getAssets(assetTypes=self.assetTypesStr)
+            assets = self.currentTask.getAssets(assetTypes=self.assetTypesStr)
             assets = sorted(assets, key=lambda a: a.getName().lower())
+
+            # if task is for a shot, then allow new option,
+            # otherwise force user to use an existing asset
+            isShot = Connector.isTaskPartOfShotOrSequence(self.currentTask)
+
+            self.updateAssetTypes(isShot)
             self.ui.ListAssetsViewModel.clear()
 
-            item = QtGui.QStandardItem('New')
-            item.id = ''
-            curAssetType = self.currentAssetType
-            if curAssetType:
-                itemType = QtGui.QStandardItem(curAssetType)
-            else:
-                itemType = QtGui.QStandardItem('')
-            self.ui.ListAssetsViewModel.setItem(0, 0, item)
-            self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
-            self.ui.ListAssetNamesComboBox.setCurrentIndex(0)
+            if isShot:
+                item = QtGui.QStandardItem('New')
+                item.id = ''
+                curAssetType = self.currentAssetType
+                if curAssetType:
+                    itemType = QtGui.QStandardItem(curAssetType)
+                else:
+                    itemType = QtGui.QStandardItem('')
+                self.ui.ListAssetsViewModel.setItem(0, 0, item)
+                self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
+
+
+            assetsLength = len(assets)
+            self.ui.ListAssetNamesComboBox.setEnabled(
+                False if assetsLength <= 0 and not isShot else True
+            )
 
             blankRows = 0
+            jStart = 1 if isShot else 0
             for i in range(0, len(assets)):
                 assetName = assets[i].getName()
                 if assetName != '':
@@ -262,11 +285,12 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                         assets[i].getType().getShort()
                     )
 
-                    j = i - blankRows + 1
+                    j = i - blankRows + jStart
                     self.ui.ListAssetsViewModel.setItem(j, 0, item)
                     self.ui.ListAssetsViewModel.setItem(j, 1, itemType)
                 else:
                     blankRows += 1
+            self.ui.ListAssetNamesComboBox.setCurrentIndex(0)
         except:
             import traceback
             import sys
@@ -360,7 +384,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetTaskComboBox.setCurrentIndex(curIndex)
 
         except:
-            print 'Not a task'
+            logging.warning('Not a task')
 
     def getShot(self):
         '''Return the current shot'''
