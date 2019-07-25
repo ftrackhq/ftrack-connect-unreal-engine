@@ -14,6 +14,7 @@ from ftrack_connect_unreal_engine.ui.asset_manager_unreal import \
     FtrackUnrealAssetManagerDialog
 from ftrack_connect_unreal_engine.ui.info import FtrackUnrealInfoDialog
 from ftrack_connect_unreal_engine.ui.tasks import FtrackTasksDialog
+from ftrack_connect_unreal_engine.ui.publisher import FtrackPublishDialog
 from QtExt import QtGui
 from QtExt.QtGui import QApplication
 
@@ -39,6 +40,7 @@ class FTrackContext(object):
         self.tickHandle = None
         self._init_commands()
         self._init_tags()
+        self._init_capture_arguments()
 
     def _init_commands(self):
         self.commands = []
@@ -46,7 +48,9 @@ class FTrackContext(object):
         self.commands.append(Command("ftrackImportAsset", "Import asset","ftrack import asset","dialog",FtrackImportAssetDialog))
         self.commands.append(Command("", "","","separator"))
         self.commands.append(Command("ftrackAssetManager", "Asset manager","ftrack browser","dialog",FtrackUnrealAssetManagerDialog))
-        self.commands.append(Command("", "","","separator"))
+        self.commands.append(Command("", "", "", "separator"))
+        self.commands.append(Command("ftrackPublish", "Publish","ftrack publish","dialog",FtrackPublishDialog))
+        self.commands.append(Command("", "", "", "separator"))
         self.commands.append(Command("ftrackInfo", "Info","ftrack info","dialog",FtrackUnrealInfoDialog))
         self.commands.append(Command("ftrackTasks", "Tasks","ftrack tasks","dialog",FtrackTasksDialog))
 
@@ -60,6 +64,14 @@ class FTrackContext(object):
         self.tags.append(tagPrefix + "AssetId")
         self.tags.append(tagPrefix + "AssetType")
         self.tags.append(tagPrefix + "AssetVersion")
+
+    def _init_capture_arguments(self):
+        self.capture_args = []
+        self.capture_args.append("-ResX=1280")
+        self.capture_args.append("-ResY=720")
+        self.capture_args.append("-MovieFrameRate=24")
+        self.capture_args.append("-MovieQuality=75")
+
 
     def external_init(self):
         self.connector = Connector()
@@ -109,7 +121,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         ftrack_connect.config.configure_logging('ftrack_connect_unreal', level='INFO')
 
         self.on_connect_initialized()
- 
+
 
     @unreal.ufunction(override=True)
     def shutdown(self):
@@ -136,14 +148,16 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
                     logging.info('Executing command' + command.name)
                     self._open_dialog(command.userData,command.displayName)
                     break
-        
+
     def _open_dialog(self, dialog_class, title):
         '''Open *dialog_class* and create if not already existing.'''
         dialog_name = dialog_class
 
-        if dialog_name == FtrackImportAssetDialog and dialog_name in ftrackContext.dialogs:
+        if (dialog_name == FtrackImportAssetDialog or
+            dialog_name == FtrackPublishDialog) \
+            and dialog_name in ftrackContext.dialogs:
             ftrackContext.dialogs[dialog_name].deleteLater()
-            ftrackContext.dialogs[dialog_name]=None
+            ftrackContext.dialogs[dialog_name] = None
             del ftrackContext.dialogs[dialog_name]
 
         if dialog_name not in ftrackContext.dialogs:
@@ -153,5 +167,14 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
             #this does not seem to work but is the logical way of operating.
             unreal.parent_external_window_to_slate(ftrack_dialog.effectiveWinId())
 
-        if ftrackContext.dialogs[dialog_name]!=None:
+        if ftrackContext.dialogs[dialog_name] is not None:
             ftrackContext.dialogs[dialog_name].show()
+
+
+    @unreal.ufunction(override=True)
+    def get_capture_arguments(self):
+        str_capture_args = ''
+        for capture_arg in ftrackContext.capture_args:
+            str_capture_args += capture_arg
+            str_capture_args += ' '
+        return str_capture_args

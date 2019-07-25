@@ -3,6 +3,9 @@
 
 import copy
 import os
+import sys
+import logging
+import subprocess
 
 import ftrack
 import ftrack_api
@@ -40,20 +43,109 @@ class GenericAsset(FTAssetType):
         task.save = True
 
         imported_asset = ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
-        
+
         self.name_import = import_path + '/' + imported_asset.asset_name + '.' + imported_asset.asset_name
         importedAssetNames = [str(imported_asset.asset_name)]
 
         try:
-            self.addMetaData(iAObj,imported_asset)
+            self.addMetaData(iAObj, imported_asset)
         except Exception as error:
             logging.error(error)
 
         return importedAssetNames
 
-    def publishAsset(self, iAObj=None):
+
+    def _render(self, destination_path, unreal_map_path, sequence_path, movie_name, is_image_sequence=False):
+
+        def __generate_target_file_path(destination_path,movie_name):
+            # Sequencer can only render to avi file format
+            output_filename = "{}.avi".format(movie_name)
+            output_filepath = os.path.join(destination_path, output_filename)
+            return output_filepath
+
+        def __build_process_args(destination_path, unreal_map_path, sequence_path, movie_name, is_image_sequence):
+             # Render the sequence to a movie file using the following command-line arguments
+            cmdline_args =  []
+
+            # Note that any command-line arguments (usually paths) that could contain spaces must be enclosed between quotes
+            unreal_exec_path = '"{}"'.format(sys.executable)
+
+            # Get the Unreal project to load
+            unreal_project_filename = "{}.uproject".format(ue.SystemLibrary.get_game_name())
+            unreal_project_path = os.path.join(ue.SystemLibrary.get_project_directory(), unreal_project_filename)
+            unreal_project_path = '"{}"'.format(unreal_project_path)
+
+            # Important to keep the order for these arguments
+            cmdline_args.append(unreal_exec_path)       # Unreal executable path
+            cmdline_args.append(unreal_project_path)    # Unreal project
+            cmdline_args.append(unreal_map_path)        # Level to load for rendering the sequence
+
+            # Command-line arguments for Sequencer Render to Movie
+            # See: https://docs.unrealengine.com/en-us/Engine/Sequencer/Workflow/RenderingCmdLine
+            sequence_path = "-LevelSequence={}".format(sequence_path)
+            cmdline_args.append(sequence_path)          # The sequence to render
+
+            output_path = '-MovieFolder="{}"'.format(destination_path)
+            cmdline_args.append(output_path)            # output folder, must match the work template
+
+            movie_name_arg = "-MovieName={}".format(movie_name)
+            cmdline_args.append(movie_name_arg)         # output filename
+
+            cmdline_args.append("-game")
+            cmdline_args.append("-MovieSceneCaptureType=/Script/MovieSceneCapture.AutomatedLevelSequenceCapture")            
+            cmdline_args.append("-ForceRes")
+            cmdline_args.append("-Windowed")
+            cmdline_args.append("-MovieCinematicMode=yes")
+            if is_image_sequence:
+                cmdline_args.append("-MovieFormat=EXR")
+            else:
+                cmdline_args.append("-MovieFormat=Video")
+            ftrack_capture_args = ue.FTrackConnect.get_instance().get_capture_arguments()
+            cmdline_args.append(ftrack_capture_args)
+            cmdline_args.append("-NoTextureStreaming")
+            cmdline_args.append("-NoLoadingScreen")
+            cmdline_args.append("-NoScreenMessages")
+            return cmdline_args
+
+        output_filepath = __generate_target_file_path(destination_path, movie_name)
+        if os.path.isfile(output_filepath):
+            # Must delete it first, otherwise the Sequencer will add a number in the filename
+            try:
+                os.remove(output_filepath)
+            except OSError, e:
+                self.logger.debug("Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(output_filepath))
+                return False, None
+
+        # Unreal will be started in game mode to render the video
+        cmdline_args = __build_process_args(destination_path, unreal_map_path, sequence_path, movie_name,is_image_sequence)
+
+        logging.info("Sequencer command-line arguments: {}".format(cmdline_args))
+
+        # Send the arguments as a single string because some arguments could contain spaces and we don't want those to be quoted
+        subprocess.call(" ".join(cmdline_args))
+
+        return os.path.isfile(output_filepath), output_filepath
+
+    def publishAsset(self, iAObj, masterSequence):
         '''Publish the asset defined by the provided *iAObj*.'''
-        pass
+        componentName = "reviewable_asset"
+        publishedComponents = []
+        dest_folder = os.path.join(ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures')
+        unreal_map = ue.EditorLevelLibrary.get_editor_world()
+        unreal_map_path = unreal_map.get_path_name()
+        unreal_asset_path = masterSequence.get_path_name()
+        movie_name = str(iAObj.assetName) + '_reviewable'
+        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name)
+        if rendered:
+            publishedComponents.append(
+                FTComponent(
+                    componentname=componentName,
+                    path=path
+                )
+            )
+
+        #currentVersion = ftrack.AssetVersion(iAObj.assetVersionId)
+        return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
     def _get_asset_import_task(self):
         task = ue.AssetImportTask()
@@ -86,7 +178,7 @@ class GenericAsset(FTAssetType):
         #location.
         session = ftrack_api.Session()
         linksForTask = session.query(
-            'select link from Task where name is "'+ task.getName() + '"'
+            'select link from Task where id is "'+ task.getId() + '"'
         ).first()['link']
         relative_path = ""
         #remove the project
@@ -126,6 +218,7 @@ class GenericAsset(FTAssetType):
         if linked_obj:
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersion", iAObj.assetVersion)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetPath", iAObj.filePath)
+            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetName", iAObj.assetName)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.ComponentName", iAObj.componentName)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetType", iAObj.assetType)
             ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetId", iAObj.assetId)
@@ -152,7 +245,6 @@ class GenericAsset(FTAssetType):
         '''Return import options for the component'''
         xml = '''
         <tab name="Options">
-            
         </tab>
         '''
         return xml
@@ -193,10 +285,13 @@ class RigAsset(GenericAsset):
         import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
 
         # find out if ftrack node already exists in th project
-        ftrack_old_node=None
+        ftrack_old_node = None
 
         try:
-            ftrack_old_node=self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
+            ftrack_old_node = self._find_asset_instance(
+                                                import_path,
+                                                iAObj.assetVersionId,
+                                                iAObj.assetType)
         except Exception as error:
             logging.error(error)
 
@@ -214,13 +309,14 @@ class RigAsset(GenericAsset):
                 #Delete old asset
                 self.changeVersion(iAObj,old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info('Changed version of existing asset ' +
-                                old_node_name)
+                logging.info(
+                        'Changed version of existing asset ' +
+                        old_node_name)
 
             elif ret == QMessageBox.No:
-                logging.info('Not changing version of existing asset ' +
-                                old_node_name)
-
+                logging.info(
+                        'Not changing version of existing asset ' +
+                        old_node_name)
 
         else:
             task = self._get_asset_import_task()
@@ -285,6 +381,17 @@ class RigAsset(GenericAsset):
                         return True
         return False
 
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
 
     @staticmethod
     def importOptions():
@@ -432,6 +539,18 @@ class AnimationAsset(GenericAsset):
         return False
 
     @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
+
+    @staticmethod
     def importOptions():
         '''Return import options for the component'''
         xml = '''
@@ -539,6 +658,17 @@ class GeometryAsset(GenericAsset):
 
         return importedAssetNames
 
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
 
     @staticmethod
     def importOptions():
@@ -553,6 +683,22 @@ class GeometryAsset(GenericAsset):
        
         return xml
 
+class ImgSequenceAsset(GenericAsset):
+    def __init__(self):
+        super(ImgSequenceAsset, self).__init__()
+
+    @staticmethod
+    def exportOptions():
+        '''Return export options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Make Reviewable" accepts="unreal" enabled="False">
+                <option type="checkbox" name="MakeReviewable" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
+
 
 
 def registerAssetTypes():
@@ -560,6 +706,7 @@ def registerAssetTypes():
     assetHandler.registerAssetType(name="rig", cls=RigAsset)
     assetHandler.registerAssetType(name="anim", cls=AnimationAsset)
     assetHandler.registerAssetType(name="geo", cls=GeometryAsset)
+    assetHandler.registerAssetType(name="img", cls=ImgSequenceAsset)
 
 
 def upperFirst(x):

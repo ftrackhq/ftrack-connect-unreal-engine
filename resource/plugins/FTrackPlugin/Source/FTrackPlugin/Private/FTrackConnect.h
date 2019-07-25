@@ -63,4 +63,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Python)
 	void AddGlobalTagInAssetRegistry(const FString& tag) const;
 
+	// Returns capture arguments specific to ftrack
+	UFUNCTION(BlueprintImplementableEvent, Category = Python)
+	FString GetCaptureArguments() const;
+
 };
