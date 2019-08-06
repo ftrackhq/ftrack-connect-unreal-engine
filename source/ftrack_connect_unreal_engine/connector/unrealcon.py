@@ -94,11 +94,13 @@ class Connector(maincon.Connector):
         #This is for the current frame range
         viewFrameStart = os.getenv('FS')
         viewFrameEnd = os.getenv('FE')
+        viewFrameRate = os.getenv('FPS')
 
         masterSequence = Connector._loadOrCreateMasterSequence()
         if masterSequence:
             masterSequence.set_playback_start(int(viewFrameStart))
             masterSequence.set_playback_end(int(viewFrameEnd))
+            masterSequence.set_display_rate(ue.FrameRate(int(viewFrameRate)))
         else:
             logging.info(
                 'No LevelSequence were found in the current map' +

@@ -69,7 +69,6 @@ class FTrackContext(object):
         self.capture_args = []
         self.capture_args.append("-ResX=1280")
         self.capture_args.append("-ResY=720")
-        self.capture_args.append("-MovieFrameRate=24")
         self.capture_args.append("-MovieQuality=75")
 
 

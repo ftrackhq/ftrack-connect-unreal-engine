@@ -55,15 +55,15 @@ class GenericAsset(FTAssetType):
         return importedAssetNames
 
 
-    def _render(self, destination_path, unreal_map_path, sequence_path, movie_name, is_image_sequence=False):
+    def _render(self, destination_path, unreal_map_path, sequence_path, content_name, fps, is_image_sequence=False):
 
-        def __generate_target_file_path(destination_path,movie_name):
+        def __generate_target_file_path(destination_path,content_name):
             # Sequencer can only render to avi file format
-            output_filename = "{}.avi".format(movie_name)
+            output_filename = "{}.avi".format(content_name) if not is_image_sequence else ("{}".format(content_name) + '.{frame}.exr')
             output_filepath = os.path.join(destination_path, output_filename)
             return output_filepath
 
-        def __build_process_args(destination_path, unreal_map_path, sequence_path, movie_name, is_image_sequence):
+        def __build_process_args(destination_path, unreal_map_path, sequence_path, content_name, fps, is_image_sequence):
              # Render the sequence to a movie file using the following command-line arguments
             cmdline_args =  []
 
@@ -88,11 +88,11 @@ class GenericAsset(FTAssetType):
             output_path = '-MovieFolder="{}"'.format(destination_path)
             cmdline_args.append(output_path)            # output folder, must match the work template
 
-            movie_name_arg = "-MovieName={}".format(movie_name)
+            movie_name_arg = "-MovieName={}".format(content_name)
             cmdline_args.append(movie_name_arg)         # output filename
 
             cmdline_args.append("-game")
-            cmdline_args.append("-MovieSceneCaptureType=/Script/MovieSceneCapture.AutomatedLevelSequenceCapture")            
+            cmdline_args.append("-MovieSceneCaptureType=/Script/MovieSceneCapture.AutomatedLevelSequenceCapture")
             cmdline_args.append("-ForceRes")
             cmdline_args.append("-Windowed")
             cmdline_args.append("-MovieCinematicMode=yes")
@@ -100,6 +100,7 @@ class GenericAsset(FTAssetType):
                 cmdline_args.append("-MovieFormat=EXR")
             else:
                 cmdline_args.append("-MovieFormat=Video")
+            cmdline_args.append("-MovieFrameRate=" + str(fps))
             ftrack_capture_args = ue.FTrackConnect.get_instance().get_capture_arguments()
             cmdline_args.append(ftrack_capture_args)
             cmdline_args.append("-NoTextureStreaming")
@@ -107,7 +108,7 @@ class GenericAsset(FTAssetType):
             cmdline_args.append("-NoScreenMessages")
             return cmdline_args
 
-        output_filepath = __generate_target_file_path(destination_path, movie_name)
+        output_filepath = __generate_target_file_path(destination_path, content_name)
         if os.path.isfile(output_filepath):
             # Must delete it first, otherwise the Sequencer will add a number in the filename
             try:
@@ -117,7 +118,7 @@ class GenericAsset(FTAssetType):
                 return False, None
 
         # Unreal will be started in game mode to render the video
-        cmdline_args = __build_process_args(destination_path, unreal_map_path, sequence_path, movie_name,is_image_sequence)
+        cmdline_args = __build_process_args(destination_path, unreal_map_path, sequence_path, content_name, fps,is_image_sequence)
 
         logging.info("Sequencer command-line arguments: {}".format(cmdline_args))
 
@@ -135,7 +136,7 @@ class GenericAsset(FTAssetType):
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
         movie_name = str(iAObj.assetName) + '_reviewable'
-        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name)
+        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name, masterSequence.get_display_rate().numerator)
         if rendered:
             publishedComponents.append(
                 FTComponent(
@@ -144,7 +145,6 @@ class GenericAsset(FTAssetType):
                 )
             )
 
-        #currentVersion = ftrack.AssetVersion(iAObj.assetVersionId)
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
     def _get_asset_import_task(self):
@@ -687,12 +687,55 @@ class ImgSequenceAsset(GenericAsset):
     def __init__(self):
         super(ImgSequenceAsset, self).__init__()
 
+    def publishAsset(self, iAObj, masterSequence):
+        '''Publish the asset defined by the provided *iAObj*.'''
+        dest_folder = os.path.join(ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures')
+        unreal_map = ue.EditorLevelLibrary.get_editor_world()
+        unreal_map_path = unreal_map.get_path_name()
+        unreal_asset_path = masterSequence.get_path_name()
+        publishReviewable = iAObj.options.get('MakeReviewable')
+
+        publishedComponents = []
+        if publishReviewable:
+            componentName = "reviewable_asset"    
+            movie_name = str(iAObj.assetName) + '_reviewable'
+            rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name, masterSequence.get_display_rate().numerator)
+            if rendered:
+                publishedComponents.append(
+                    FTComponent(
+                        componentname=componentName,
+                        path=path
+                    )
+                )
+        imgComponentName = "image_sequence"
+
+        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, str(iAObj.assetName), masterSequence.get_display_rate().numerator, True)
+
+        # try to get start and end frames from sequence this allow local control for test publish(subset of sequence)
+        frameStart = masterSequence.get_playback_start()
+        frameEnd = masterSequence.get_playback_end() - 1
+        base_file_path = path[:-12] if path.endswith('.{frame}.exr') else path
+
+        imgComponentPath = "{0}.%04d.{1} [{2}-{3}]".format(
+            base_file_path,
+            'exr',
+            frameStart,
+            frameEnd)
+        publishedComponents.append(
+            FTComponent(
+                componentname=imgComponentName,
+                path=imgComponentPath
+            )
+        )
+
+        return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
+
     @staticmethod
     def exportOptions():
         '''Return export options for the component'''
         xml = '''
         <tab name="Options">
-            <row name="Make Reviewable" accepts="unreal" enabled="False">
+            <row name="Make Reviewable" accepts="unreal" enabled="True">
                 <option type="checkbox" name="MakeReviewable" value="True"/>
             </row>
         </tab>
