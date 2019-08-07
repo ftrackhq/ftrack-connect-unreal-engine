@@ -101,6 +101,7 @@ class Connector(maincon.Connector):
             masterSequence.set_playback_start(int(viewFrameStart))
             masterSequence.set_playback_end(int(viewFrameEnd))
             masterSequence.set_display_rate(ue.FrameRate(int(viewFrameRate)))
+            ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         else:
             logging.info(
                 'No LevelSequence were found in the current map' +
@@ -295,6 +296,8 @@ class Connector(maincon.Connector):
         masterSequence = Connector._getLoadedLevelSequence()
         if masterSequence is None:
             return [], 'no sequence available in current map to allow render'
+        #ensure that the masterSequence we are operating on is saved
+        ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         assetHandler = FTAssetHandlerInstance.instance()
         pubAsset = assetHandler.getAssetClass(iAObj.assetType)
         if pubAsset:
