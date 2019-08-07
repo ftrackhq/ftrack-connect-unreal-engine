@@ -215,7 +215,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         )
         try:
             publishedComponents, message = self.connector.publishAsset(pubObj)
-            self.exportOptionsWidget.setProgress(80)
+            self.exportOptionsWidget.setProgress(40)
         except:
             self.exportOptionsWidget.setProgress(100)
             self.showError('Publish failed. Please check the console.')
