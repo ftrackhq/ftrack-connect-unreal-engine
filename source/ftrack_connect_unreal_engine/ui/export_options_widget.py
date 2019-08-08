@@ -8,7 +8,9 @@ from QtExt import QtCore, QtWidgets, QtGui
 import ftrack
 from ftrack_connect.ui.widget.stacked_options import StackedOptionsWidget
 from ftrack_connect import connector as ftrack_connector
-from ftrack_connect_unreal_engine.connector.unrealcon import Connector as ue_connector
+from ftrack_connect_unreal_engine.connector.unrealcon import (
+    Connector as ue_connector,
+)
 
 
 class Ui_ExportOptions(object):
@@ -53,7 +55,10 @@ class Ui_ExportOptions(object):
         self.publishMessageLabel.setObjectName("publishMessageLabel")
         self.verticalLayout.addWidget(self.publishMessageLabel)
         spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding,
         )
         self.verticalLayout.addItem(spacerItem)
 
@@ -63,22 +68,28 @@ class Ui_ExportOptions(object):
     def retranslateUi(self, ExportOptions):
         ExportOptions.setWindowTitle(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Form", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Form",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
         self.label_5.setText(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Comment:", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Comment:",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
         self.publishButton.setText(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Publish!", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Publish!",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
@@ -113,17 +124,17 @@ class ExportOptionsWidget(QtWidgets.QWidget):
         assetTypesStr = sorted(assetHandler.getAssetTypes())
         for assetTypeStr in assetTypesStr:
             assetClass = assetHandler.getAssetClass(assetTypeStr)
-            if hasattr(assetClass, 'exportOptions'):
+            if hasattr(assetClass, "exportOptions"):
                 xmlExtraAssetTypes += '<assettype name="' + assetTypeStr + '">'
                 xmlExtraAssetTypes += assetClass.exportOptions()
-                xmlExtraAssetTypes += '</assettype>'
+                xmlExtraAssetTypes += "</assettype>"
 
         xml = xml.format(xmlExtraAssetTypes)
 
         return xml
 
     def resetOptions(self):
-        '''Reset IO options'''
+        """Reset IO options"""
         xml = self.getXml()
         self.stackedOptionsWidget.resetOptions(xml)
 
@@ -132,20 +143,20 @@ class ExportOptionsWidget(QtWidgets.QWidget):
         self.stackedOptionsWidget.setCurrentPage(stackName)
 
     def getOptions(self):
-        '''Return the options'''
+        """Return the options"""
         return self.stackedOptionsWidget.getOptions()
 
     def getComment(self):
-        '''Return the comment'''
+        """Return the comment"""
         return self.ui.commentTextEdit.toPlainText()
 
     def setComment(self, comment):
-        '''Set comment'''
+        """Set comment"""
         self.ui.commentTextEdit.clear()
         self.ui.commentTextEdit.appendPlainText(comment)
 
     def setProgress(self, progressInt):
-        '''Set progress bar to the given progressInt'''
+        """Set progress bar to the given progressInt"""
         if not self.ui.progressBar.isVisible():
             self.ui.progressBar.show()
         self.ui.progressBar.setProperty("value", progressInt)
@@ -153,5 +164,5 @@ class ExportOptionsWidget(QtWidgets.QWidget):
             self.ui.progressBar.hide()
 
     def setMessage(self, message):
-        '''Set message with the provided *message*'''
+        """Set message with the provided *message*"""
         self.ui.publishMessageLabel.setText(message)

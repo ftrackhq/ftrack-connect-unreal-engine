@@ -65,7 +65,7 @@ class Ui_ExportAssetOptions(object):
             40,
             20,
             QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Minimum
+            QtWidgets.QSizePolicy.Minimum,
         )
         self.gridLayout.addItem(spacerItem, 0, 2, 1, 1)
         self.label_2 = QtWidgets.QLabel(ExportAssetOptions)
@@ -102,7 +102,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Form",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetTaskLabel.setText(
@@ -110,7 +110,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Task",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.labelAssetType.setText(
@@ -118,7 +118,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "AssetType",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetNameLabel.setText(
@@ -126,7 +126,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "AssetName:",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.label_2.setText(
@@ -134,7 +134,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Existing Assets",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetTaskLabel_2.setText(
@@ -142,7 +142,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Task status",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
@@ -151,7 +151,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
     clickedAssetSignal = QtCore.Signal(str)
     clickedAssetTypeSignal = QtCore.Signal(str)
 
-    def __init__(self, parent, browseMode='Shot'):
+    def __init__(self, parent, browseMode="Shot"):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_ExportAssetOptions()
         self.ui.setupUi(self)
@@ -181,67 +181,69 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.onAssetChanged
         )
 
-        if browseMode == 'Task':
+        if browseMode == "Task":
             self.ui.AssetTaskComboBox.hide()
             self.ui.assetTaskLabel.hide()
-
 
     def updateAssetTypes(self, isShot):
         assetHandler = FTAssetHandlerInstance.instance()
         self.assetTypesStr = sorted(assetHandler.getAssetTypes())
         self.ui.ListAssetsComboBoxModel.blockSignals(True)
         self.ui.ListAssetsComboBoxModel.clear()
-        assetTypeItem = QtGui.QStandardItem('Select AssetType')
+        assetTypeItem = QtGui.QStandardItem("Select AssetType")
         self.assetTypes = []
-        self.assetTypes.append('')
+        self.assetTypes.append("")
         self.ui.ListAssetsComboBoxModel.blockSignals(False)
         self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
 
-        #by default p
+        # by default p
         for assetTypeStr in self.assetTypesStr:
-            if isShot and assetTypeStr != 'img' or not isShot and assetTypeStr == 'img':
+            if (
+                isShot
+                and assetTypeStr != "img"
+                or not isShot
+                and assetTypeStr == "img"
+            ):
                 continue
             try:
                 assetType = ftrack.AssetType(assetTypeStr)
             except:
-                log.warning(
-                    '{0} not available in ftrack'.format(assetTypeStr)
-                )
+                log.warning("{0} not available in ftrack".format(assetTypeStr))
                 continue
             assetTypeItem = QtGui.QStandardItem(assetType.getName())
             assetTypeItem.type = assetType.getShort()
             self.assetTypes.append(assetTypeItem.type)
             self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
 
-
     def onAssetChanged(self, asset_name):
-        '''Hanldes the asset name logic on asset change'''
-        if asset_name != 'New':
+        """Hanldes the asset name logic on asset change"""
+        if asset_name != "New":
             self.ui.AssetNameLineEdit.setEnabled(False)
             self.ui.AssetNameLineEdit.setText(asset_name)
         else:
             self.ui.AssetNameLineEdit.setEnabled(True)
-            self.ui.AssetNameLineEdit.setText('')
-
+            self.ui.AssetNameLineEdit.setText("")
 
     @QtCore.Slot(object)
     def updateView(self, ftrackEntity):
-        '''Update view with the provided *ftrackEntity*'''
+        """Update view with the provided *ftrackEntity*"""
         try:
             self.currentTask = ftrackEntity
             project = self.currentTask.getProject()
-            taskid = '11c137c0-ee7e-4f9c-91c5-8c77cec22b2c'
+            taskid = "11c137c0-ee7e-4f9c-91c5-8c77cec22b2c"
             # Populate statuses based on task if it is a task.
-            if self.currentTask.get('object_typeid') == taskid:
+            if self.currentTask.get("object_typeid") == taskid:
                 self.ui.ListStatusComboBox.show()
                 self.ui.assetTaskLabel_2.show()
                 self.ui.ListStatusComboBox.clear()
                 statuses = project.getTaskStatuses(
-                    self.currentTask.get('typeid')
+                    self.currentTask.get("typeid")
                 )
-                for index, status, in enumerate(statuses):
+                for index, status in enumerate(statuses):
                     self.ui.ListStatusComboBox.addItem(status.getName())
-                    if status.get('statusid') == self.currentTask.get('statusid'):
+                    if status.get("statusid") == self.currentTask.get(
+                        "statusid"
+                    ):
                         self.ui.ListStatusComboBox.setCurrentIndex(index)
             else:
                 self.ui.ListStatusComboBox.hide()
@@ -258,16 +260,15 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.ListAssetsViewModel.clear()
 
             if isShot:
-                item = QtGui.QStandardItem('New')
-                item.id = ''
+                item = QtGui.QStandardItem("New")
+                item.id = ""
                 curAssetType = self.currentAssetType
                 if curAssetType:
                     itemType = QtGui.QStandardItem(curAssetType)
                 else:
-                    itemType = QtGui.QStandardItem('')
+                    itemType = QtGui.QStandardItem("")
                 self.ui.ListAssetsViewModel.setItem(0, 0, item)
                 self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
-
 
             assetsLength = len(assets)
             self.ui.ListAssetNamesComboBox.setEnabled(
@@ -278,7 +279,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             jStart = 1 if isShot else 0
             for i in range(0, len(assets)):
                 assetName = assets[i].getName()
-                if assetName != '':
+                if assetName != "":
                     item = QtGui.QStandardItem(assetName)
                     item.id = assets[i].getId()
                     itemType = QtGui.QStandardItem(
@@ -294,11 +295,12 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         except:
             import traceback
             import sys
+
             traceback.print_exc(file=sys.stdout)
 
     @QtCore.Slot(QtCore.QModelIndex)
     def emitAssetId(self, modelindex):
-        '''Signal for emitting changes on the assetId for the give *modelIndex*'''
+        """Signal for emitting changes on the assetId for the give *modelIndex*"""
         clickedItem = self.ui.ListAssetsViewModel.itemFromIndex(
             self.ui.ListAssetsSortModel.mapToSource(modelindex)
         )
@@ -306,7 +308,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
 
     @QtCore.Slot(int)
     def emitAssetType(self, comboIndex):
-        '''Signal for emitting changes on the assetId for the give *comboIndex*'''
+        """Signal for emitting changes on the assetId for the give *comboIndex*"""
 
         comboItem = self.ui.ListAssetsComboBoxModel.item(comboIndex)
         if type(comboItem.type) is str:
@@ -315,17 +317,17 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
 
     @QtCore.Slot(int)
     def setFilter(self, comboBoxIndex):
-        '''Set filtering for the given *comboBoxIndex*'''
+        """Set filtering for the given *comboBoxIndex*"""
         if comboBoxIndex:
             comboItem = self.ui.ListAssetsComboBoxModel.item(comboBoxIndex)
             newItem = self.ui.ListAssetsViewModel.item(0, 1)
             newItem.setText(comboItem.type)
             self.ui.ListAssetsSortModel.setFilterFixedString(comboItem.type)
         else:
-            self.ui.ListAssetsSortModel.setFilterFixedString('')
+            self.ui.ListAssetsSortModel.setFilterFixedString("")
 
     def setAssetType(self, assetType):
-        '''Set the asset to the given *assetType*'''
+        """Set the asset to the given *assetType*"""
         for position, item in enumerate(self.assetTypes):
             if item == assetType:
                 assetTypeIndex = int(position)
@@ -334,8 +336,8 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 self.ui.ListAssetsComboBox.setCurrentIndex(assetTypeIndex)
 
     def setAssetName(self, assetName):
-        '''Set the asset to the given *assetName*'''
-        self.ui.AssetNameLineEdit.setText('')
+        """Set the asset to the given *assetName*"""
+        self.ui.AssetNameLineEdit.setText("")
         rows = self.ui.ListAssetsSortModel.rowCount()
         existingAssetFound = False
         for i in range(rows):
@@ -350,19 +352,19 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetNameLineEdit.setText(assetName)
 
     def getAssetType(self):
-        '''Return the current asset type'''
+        """Return the current asset type"""
         return self.currentAssetType
 
     @QtCore.Slot(object)
     def updateTasks(self, ftrackEntity):
-        '''Update task with the provided *ftrackEntity*'''
+        """Update task with the provided *ftrackEntity*"""
         self.currentTask = ftrackEntity
         try:
             shotpath = self.currentTask.getName()
             taskParents = self.currentTask.getParents()
 
             for parent in taskParents:
-                shotpath = '{0}.{1}'.format(parent.getName(), shotpath)
+                shotpath = "{0}.{1}".format(parent.getName(), shotpath)
 
             self.ui.AssetTaskComboBox.clear()
             tasks = self.currentTask.getTasks()
@@ -375,7 +377,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 assetTaskItem.id = tasks[i].getId()
                 self.ui.AssetTaskComboBoxModel.appendRow(assetTaskItem)
 
-                if (os.environ.get('FTRACK_TASKID') == assetTaskItem.id):
+                if os.environ.get("FTRACK_TASKID") == assetTaskItem.id:
                     curIndex = i
                 else:
                     if assetTaskItem.id in taskids:
@@ -384,18 +386,18 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetTaskComboBox.setCurrentIndex(curIndex)
 
         except:
-            logging.warning('Not a task')
+            logging.warning("Not a task")
 
     def getShot(self):
-        '''Return the current shot'''
-        if self.browseMode == 'Shot':
+        """Return the current shot"""
+        if self.browseMode == "Shot":
             return self.currentTask
         else:
             return self.currentTask.getParent()
 
     def getTask(self):
-        '''Return the current task'''
-        if self.browseMode == 'Shot':
+        """Return the current task"""
+        if self.browseMode == "Shot":
             comboItem = self.ui.AssetTaskComboBoxModel.item(
                 self.ui.AssetTaskComboBox.currentIndex()
             )
@@ -407,12 +409,12 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             return self.currentTask
 
     def getStatus(self):
-        '''Return the current asset status'''
+        """Return the current asset status"""
         return self.ui.ListStatusComboBox.currentText()
 
     def getAssetName(self):
-        '''Retain logic for defining a new asset name'''
-        if self.ui.ListAssetNamesComboBox.currentText() == 'New':
+        """Retain logic for defining a new asset name"""
+        if self.ui.ListAssetNamesComboBox.currentText() == "New":
             return self.ui.AssetNameLineEdit.text()
         else:
             return self.ui.ListAssetNamesComboBox.currentText()

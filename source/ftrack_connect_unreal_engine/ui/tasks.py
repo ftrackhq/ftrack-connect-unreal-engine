@@ -13,10 +13,10 @@ import ftrack
 
 class FtrackTasksDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, connector=None):
-        ''''Initialize dialog with *parent* and *connector* instance.'''
+        """'Initialize dialog with *parent* and *connector* instance."""
         if not connector:
             raise ValueError(
-                'Please provide a connector object for {0}'.format(
+                "Please provide a connector object for {0}".format(
                     self.__class__.__name__
                 )
             )
@@ -24,7 +24,7 @@ class FtrackTasksDialog(QtWidgets.QDialog):
         if not parent:
             self.parent = self.connector.getMainWindow()
         super(FtrackTasksDialog, self).__init__(self.parent)
-        applyTheme(self, 'integration')
+        applyTheme(self, "integration")
         self.setSizePolicy(
             QtWidgets.QSizePolicy(
                 QtWidgets.QSizePolicy.Expanding,
@@ -38,23 +38,22 @@ class FtrackTasksDialog(QtWidgets.QDialog):
 
         self.headerWidget = Header(getpass.getuser(), self)
         self.headerWidget.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         self.verticalMainLayout.addWidget(self.headerWidget)
 
         self.tasksWidget = WebViewWidget(self)
 
-        url = ftrack.getWebWidgetUrl('tasks', theme='tf')
+        url = ftrack.getWebWidgetUrl("tasks", theme="tf")
 
         self.tasksWidget.setUrl(url)
         self.horizontalLayout.addWidget(self.tasksWidget)
         self.verticalMainLayout.addLayout(self.horizontalLayout)
 
-        self.setObjectName('ftrackTasks')
+        self.setObjectName("ftrackTasks")
         self.setWindowTitle("ftrackTasks")
 
     def keyPressEvent(self, e):
-        '''Handle the key press Event'''
+        """Handle the key press Event"""
         if not e.key() == QtCore.Qt.Key_Escape:
             super(FtrackTasksDialog, self).keyPressEvent(e)
