@@ -25,6 +25,10 @@ class GenericAsset(FTAssetType):
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
+
+        if not self._validate_ftrack_asset(iAObj):
+            return []
+
         task = ue.AssetImportTask()
         task.options = ue.FbxImportUI()
         task.options.import_mesh = iAObj.options['ImportMesh']
@@ -113,8 +117,8 @@ class GenericAsset(FTAssetType):
             # Must delete it first, otherwise the Sequencer will add a number in the filename
             try:
                 os.remove(output_filepath)
-            except OSError, e:
-                self.logger.debug("Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(output_filepath))
+            except OSError as e:
+                logging.warning("Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(output_filepath))
                 return False, None
 
         # Unreal will be started in game mode to render the video
@@ -146,6 +150,24 @@ class GenericAsset(FTAssetType):
             )
 
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
+
+    def _validate_ftrack_asset(self, iAObj=None):
+        # Validate the file
+        if not os.path.exists(iAObj.filePath):
+            error_string = 'ftrack cannot import file "{}" because it does not exist'.format(iAObj.filePath)
+            logging.error(error_string)
+            return False
+
+        # Only fbx files are supported
+        (_, src_filename) = os.path.split(iAObj.filePath)
+        (_, src_extension) = os.path.splitext(src_filename)
+        if src_extension.lower() != '.fbx':
+            error_string = 'ftrack in UE4 does not support importing files with extension "{}" please use .fbx'.format(src_extension)
+            logging.error(error_string)
+
+            return False
+
+        return True
 
     def _get_asset_import_task(self):
         task = ue.AssetImportTask()
@@ -192,6 +214,9 @@ class GenericAsset(FTAssetType):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
+        if not self._validate_ftrack_asset(iAObj):
+            return False
+
         assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
@@ -274,7 +299,10 @@ class RigAsset(GenericAsset):
 
     def importAsset(self, iAObj=None):
         '''Import rig asset defined in *iAObj*'''
-        
+
+        if not self._validate_ftrack_asset(iAObj):
+            return []
+
         # import settings
         fbx_path = iAObj.filePath
 
@@ -361,6 +389,8 @@ class RigAsset(GenericAsset):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
+        if not self._validate_ftrack_asset(iAObj):
+            return False
         assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #rig asset import 
@@ -445,6 +475,9 @@ class AnimationAsset(GenericAsset):
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
 
+        if not self._validate_ftrack_asset(iAObj):
+            return []
+
         assetRegistry = ue.AssetRegistryHelpers.get_asset_registry()
         skeletons = assetRegistry.get_assets_by_class('Skeleton')
         skeletonName = iAObj.options['ChooseSkeleton']
@@ -522,6 +555,10 @@ class AnimationAsset(GenericAsset):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
+
+        if not self._validate_ftrack_asset(iAObj):
+            return False
+
         assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
         for asset_data in assets:
             #unfortunately to access the tag values objects needs to be in memory....
@@ -603,6 +640,10 @@ class GeometryAsset(GenericAsset):
 
     def importAsset(self, iAObj=None):
         '''Import geometry asset defined in *iAObj*'''
+
+        if not self._validate_ftrack_asset(iAObj):
+            return []
+
         fbx_path = iAObj.filePath
         ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
         ftrack_asset = ftrack_asset_version.getParent()
