@@ -254,6 +254,11 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         except Exception:
             environment['FE'] = '1'
 
+        try:
+            environment['FPS'] = str(int(taskParent.getFrameRate()))
+        except Exception:
+            environment['FPS'] = '24'
+
         environment['FTRACK_TASKID'] = task.getId()
         environment['FTRACK_SHOTID'] = task.get('parent_id')
 

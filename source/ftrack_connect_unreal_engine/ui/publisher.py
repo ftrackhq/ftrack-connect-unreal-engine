@@ -215,7 +215,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         )
         try:
             publishedComponents, message = self.connector.publishAsset(pubObj)
-            self.exportOptionsWidget.setProgress(80)
+            self.exportOptionsWidget.setProgress(40)
         except:
             self.exportOptionsWidget.setProgress(100)
             self.showError('Publish failed. Please check the console.')
@@ -225,9 +225,15 @@ class FtrackPublishDialog(QtWidgets.QDialog):
             session = ftrack_api.Session()
             for componentNumber, ftComponent in enumerate(publishedComponents):
                 path = ftComponent.path
+                compName = ftComponent.componentname
                 location = Connector.pickLocation(copyFiles=True)
                 try:
-                    ftrack.Review.makeReviewable(assetVersion, path)
+                    # TODO: find a better way to check if this is a reviewable
+                    if "reviewable" in compName:
+                        ftrack.Review.makeReviewable(assetVersion, path)
+                    else:
+                        assetVersion.createComponent(
+                            name=compName, path=path)
                     assetVersion.publish()
                 except Exception as error:
                     logging.error(str(error))
