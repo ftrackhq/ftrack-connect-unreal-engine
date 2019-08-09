@@ -14,8 +14,12 @@ from ftrack_connect import connector as ftrack_connector
 from ftrack_connect.ui.widget import header
 from ftrack_connect.ui.theme import applyTheme
 from ftrack_connect.ui.widget.context_selector import ContextSelector
-from ftrack_connect_unreal_engine.ui.export_asset_options_widget import ExportAssetOptionsWidget
-from ftrack_connect_unreal_engine.ui.export_options_widget import ExportOptionsWidget
+from ftrack_connect_unreal_engine.ui.export_asset_options_widget import (
+    ExportAssetOptionsWidget,
+)
+from ftrack_connect_unreal_engine.ui.export_options_widget import (
+    ExportOptionsWidget,
+)
 from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 
 
@@ -36,8 +40,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         super(FtrackPublishDialog, self).__init__(self.parent)
         self.setSizePolicy(
             QtWidgets.QSizePolicy(
-                QtWidgets.QSizePolicy.Expanding,
-                QtWidgets.QSizePolicy.Expanding
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
             )
         )
         applyTheme(self, 'integration')
@@ -92,7 +95,10 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         self.scrollLayout.addWidget(self.exportOptionsWidget)
 
         spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding,
         )
         self.scrollLayout.addItem(spacerItem)
 
@@ -189,7 +195,9 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         # Don't need to do this for image sequences as they will not have
         # sub-component that we need to propagate to new version.
         if assetType != "img":
-            oldAssetVersion = Connector.getImportedAssetVersion(assetName, assetType, taskId)
+            oldAssetVersion = Connector.getImportedAssetVersion(
+                assetName, assetType, taskId
+            )
             if not oldAssetVersion:
                 self.showError("Publish failed: Selected asset not in project")
                 return
@@ -204,14 +212,14 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                 compName = oldComp.getName()
                 if compName == 'thumbnail' or compName == 'ftrackreview-mp4':
                     continue
-                assetVersion.createComponent(name=oldComp.getName(),
-                                             path=oldComp.getFilesystemPath())
+                assetVersion.createComponent(
+                    name=oldComp.getName(), path=oldComp.getFilesystemPath()
+                )
 
         #####
 
         pubObj = ftrack_connector.FTAssetObject(
-            assetVersionId=assetVersion.getId(),
-            options=options
+            assetVersionId=assetVersion.getId(), options=options
         )
         try:
             publishedComponents, message = self.connector.publishAsset(pubObj)
@@ -232,8 +240,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                     if "reviewable" in compName:
                         ftrack.Review.makeReviewable(assetVersion, path)
                     else:
-                        assetVersion.createComponent(
-                            name=compName, path=path)
+                        assetVersion.createComponent(name=compName, path=path)
                     assetVersion.publish()
                 except Exception as error:
                     logging.error(str(error))
@@ -244,17 +251,17 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         # Update status of task.
         ftTask = ftrack.Task(id=taskId)
         if (
-            ftTask and
-            ftTask.get('object_typeid') == '11c137c0-ee7e-4f9c-91c5-8c77cec22b2c'
+            ftTask
+            and ftTask.get('object_typeid')
+            == '11c137c0-ee7e-4f9c-91c5-8c77cec22b2c'
         ):
             for taskStatus in ftrack.getTaskStatuses():
-                if (
-                    taskStatus.getName() == status and
-                    taskStatus.get('statusid') != ftTask.get('statusid')
-                ):
+                if taskStatus.getName() == status and taskStatus.get(
+                    'statusid'
+                ) != ftTask.get('statusid'):
                     try:
                         ftTask.setStatus(taskStatus)
-                    except Exception, error:
+                    except Exception as error:
                         logging.error('{0}'.format(error))
 
                     break

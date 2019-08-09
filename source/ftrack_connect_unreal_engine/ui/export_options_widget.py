@@ -8,7 +8,9 @@ from QtExt import QtCore, QtWidgets, QtGui
 import ftrack
 from ftrack_connect.ui.widget.stacked_options import StackedOptionsWidget
 from ftrack_connect import connector as ftrack_connector
-from ftrack_connect_unreal_engine.connector.unrealcon import Connector as ue_connector
+from ftrack_connect_unreal_engine.connector.unrealcon import (
+    Connector as ue_connector,
+)
 
 
 class Ui_ExportOptions(object):
@@ -53,7 +55,10 @@ class Ui_ExportOptions(object):
         self.publishMessageLabel.setObjectName("publishMessageLabel")
         self.verticalLayout.addWidget(self.publishMessageLabel)
         spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+            20,
+            40,
+            QtWidgets.QSizePolicy.Minimum,
+            QtWidgets.QSizePolicy.Expanding,
         )
         self.verticalLayout.addItem(spacerItem)
 
@@ -63,22 +68,28 @@ class Ui_ExportOptions(object):
     def retranslateUi(self, ExportOptions):
         ExportOptions.setWindowTitle(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Form", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Form",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
         self.label_5.setText(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Comment:", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Comment:",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
         self.publishButton.setText(
             QtWidgets.QApplication.translate(
-                "ExportOptions", "Publish!", None,
-                QtWidgets.QApplication.UnicodeUTF8
+                "ExportOptions",
+                "Publish!",
+                None,
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 

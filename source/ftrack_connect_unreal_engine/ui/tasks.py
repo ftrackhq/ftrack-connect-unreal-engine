@@ -27,8 +27,7 @@ class FtrackTasksDialog(QtWidgets.QDialog):
         applyTheme(self, 'integration')
         self.setSizePolicy(
             QtWidgets.QSizePolicy(
-                QtWidgets.QSizePolicy.Expanding,
-                QtWidgets.QSizePolicy.Expanding
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
             )
         )
         self.setMinimumWidth(500)
@@ -38,8 +37,7 @@ class FtrackTasksDialog(QtWidgets.QDialog):
 
         self.headerWidget = Header(getpass.getuser(), self)
         self.headerWidget.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         self.verticalMainLayout.addWidget(self.headerWidget)
 

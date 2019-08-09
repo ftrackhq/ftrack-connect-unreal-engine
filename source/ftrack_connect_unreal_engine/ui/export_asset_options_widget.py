@@ -65,7 +65,7 @@ class Ui_ExportAssetOptions(object):
             40,
             20,
             QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Minimum
+            QtWidgets.QSizePolicy.Minimum,
         )
         self.gridLayout.addItem(spacerItem, 0, 2, 1, 1)
         self.label_2 = QtWidgets.QLabel(ExportAssetOptions)
@@ -102,7 +102,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Form",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetTaskLabel.setText(
@@ -110,7 +110,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Task",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.labelAssetType.setText(
@@ -118,7 +118,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "AssetType",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetNameLabel.setText(
@@ -126,7 +126,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "AssetName:",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.label_2.setText(
@@ -134,7 +134,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Existing Assets",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
         self.assetTaskLabel_2.setText(
@@ -142,7 +142,7 @@ class Ui_ExportAssetOptions(object):
                 "ExportAssetOptions",
                 "Task status",
                 None,
-                QtWidgets.QApplication.UnicodeUTF8
+                QtWidgets.QApplication.UnicodeUTF8,
             )
         )
 
@@ -185,7 +185,6 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetTaskComboBox.hide()
             self.ui.assetTaskLabel.hide()
 
-
     def updateAssetTypes(self, isShot):
         assetHandler = FTAssetHandlerInstance.instance()
         self.assetTypesStr = sorted(assetHandler.getAssetTypes())
@@ -197,22 +196,24 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         self.ui.ListAssetsComboBoxModel.blockSignals(False)
         self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
 
-        #by default p
+        # by default p
         for assetTypeStr in self.assetTypesStr:
-            if isShot and assetTypeStr != 'img' or not isShot and assetTypeStr == 'img':
+            if (
+                isShot
+                and assetTypeStr != 'img'
+                or not isShot
+                and assetTypeStr == 'img'
+            ):
                 continue
             try:
                 assetType = ftrack.AssetType(assetTypeStr)
             except:
-                log.warning(
-                    '{0} not available in ftrack'.format(assetTypeStr)
-                )
+                log.warning('{0} not available in ftrack'.format(assetTypeStr))
                 continue
             assetTypeItem = QtGui.QStandardItem(assetType.getName())
             assetTypeItem.type = assetType.getShort()
             self.assetTypes.append(assetTypeItem.type)
             self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
-
 
     def onAssetChanged(self, asset_name):
         '''Hanldes the asset name logic on asset change'''
@@ -222,7 +223,6 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         else:
             self.ui.AssetNameLineEdit.setEnabled(True)
             self.ui.AssetNameLineEdit.setText('')
-
 
     @QtCore.Slot(object)
     def updateView(self, ftrackEntity):
@@ -239,9 +239,11 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 statuses = project.getTaskStatuses(
                     self.currentTask.get('typeid')
                 )
-                for index, status, in enumerate(statuses):
+                for index, status in enumerate(statuses):
                     self.ui.ListStatusComboBox.addItem(status.getName())
-                    if status.get('statusid') == self.currentTask.get('statusid'):
+                    if status.get('statusid') == self.currentTask.get(
+                        'statusid'
+                    ):
                         self.ui.ListStatusComboBox.setCurrentIndex(index)
             else:
                 self.ui.ListStatusComboBox.hide()
@@ -268,7 +270,6 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 self.ui.ListAssetsViewModel.setItem(0, 0, item)
                 self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
 
-
             assetsLength = len(assets)
             self.ui.ListAssetNamesComboBox.setEnabled(
                 False if assetsLength <= 0 and not isShot else True
@@ -294,6 +295,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         except:
             import traceback
             import sys
+
             traceback.print_exc(file=sys.stdout)
 
     @QtCore.Slot(QtCore.QModelIndex)
@@ -375,7 +377,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                 assetTaskItem.id = tasks[i].getId()
                 self.ui.AssetTaskComboBoxModel.appendRow(assetTaskItem)
 
-                if (os.environ.get('FTRACK_TASKID') == assetTaskItem.id):
+                if os.environ.get('FTRACK_TASKID') == assetTaskItem.id:
                     curIndex = i
                 else:
                     if assetTaskItem.id in taskids:

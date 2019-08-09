@@ -11,10 +11,13 @@ import ftrack
 import ftrack_api
 import unreal as ue
 import unrealcon
-from ftrack_connect.connector import (FTAssetHandlerInstance, FTAssetType,
-                                      FTComponent, HelpFunctions)
+from ftrack_connect.connector import (
+    FTAssetHandlerInstance,
+    FTAssetType,
+    FTComponent,
+    HelpFunctions,
+)
 from QtExt.QtGui import QMessageBox
-
 
 
 class GenericAsset(FTAssetType):
@@ -43,12 +46,20 @@ class GenericAsset(FTAssetType):
         task.destination_path = import_path
         task.replace_existing = True
         task.automated = True
-        #save the file when it is imported, that's right!
+        # save the file when it is imported, that's right!
         task.save = True
 
-        imported_asset = ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+        imported_asset = ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks(
+            [task]
+        )
 
-        self.name_import = import_path + '/' + imported_asset.asset_name + '.' + imported_asset.asset_name
+        self.name_import = (
+            import_path
+            + '/'
+            + imported_asset.asset_name
+            + '.'
+            + imported_asset.asset_name
+        )
         importedAssetNames = [str(imported_asset.asset_name)]
 
         try:
@@ -58,45 +69,75 @@ class GenericAsset(FTAssetType):
 
         return importedAssetNames
 
-
-    def _render(self, destination_path, unreal_map_path, sequence_path, content_name, fps, is_image_sequence=False):
-
-        def __generate_target_file_path(destination_path,content_name):
+    def _render(
+        self,
+        destination_path,
+        unreal_map_path,
+        sequence_path,
+        content_name,
+        fps,
+        is_image_sequence=False,
+    ):
+        def __generate_target_file_path(destination_path, content_name):
             # Sequencer can only render to avi file format
-            output_filename = "{}.avi".format(content_name) if not is_image_sequence else ("{}".format(content_name) + '.{frame}.exr')
+            output_filename = (
+                "{}.avi".format(content_name)
+                if not is_image_sequence
+                else ("{}".format(content_name) + '.{frame}.exr')
+            )
             output_filepath = os.path.join(destination_path, output_filename)
             return output_filepath
 
-        def __build_process_args(destination_path, unreal_map_path, sequence_path, content_name, fps, is_image_sequence):
-             # Render the sequence to a movie file using the following command-line arguments
-            cmdline_args =  []
+        def __build_process_args(
+            destination_path,
+            unreal_map_path,
+            sequence_path,
+            content_name,
+            fps,
+            is_image_sequence,
+        ):
+            # Render the sequence to a movie file using the following
+            # command-line arguments
+            cmdline_args = []
 
-            # Note that any command-line arguments (usually paths) that could contain spaces must be enclosed between quotes
+            # Note that any command-line arguments (usually paths) that could
+            # contain spaces must be enclosed between quotes
             unreal_exec_path = '"{}"'.format(sys.executable)
 
             # Get the Unreal project to load
-            unreal_project_filename = "{}.uproject".format(ue.SystemLibrary.get_game_name())
-            unreal_project_path = os.path.join(ue.SystemLibrary.get_project_directory(), unreal_project_filename)
+            unreal_project_filename = "{}.uproject".format(
+                ue.SystemLibrary.get_game_name()
+            )
+            unreal_project_path = os.path.join(
+                ue.SystemLibrary.get_project_directory(),
+                unreal_project_filename,
+            )
             unreal_project_path = '"{}"'.format(unreal_project_path)
 
             # Important to keep the order for these arguments
-            cmdline_args.append(unreal_exec_path)       # Unreal executable path
-            cmdline_args.append(unreal_project_path)    # Unreal project
-            cmdline_args.append(unreal_map_path)        # Level to load for rendering the sequence
+            cmdline_args.append(unreal_exec_path)  # Unreal executable path
+            cmdline_args.append(unreal_project_path)  # Unreal project
+            cmdline_args.append(
+                unreal_map_path
+            )  # Level to load for rendering the sequence
 
             # Command-line arguments for Sequencer Render to Movie
             # See: https://docs.unrealengine.com/en-us/Engine/Sequencer/Workflow/RenderingCmdLine
             sequence_path = "-LevelSequence={}".format(sequence_path)
-            cmdline_args.append(sequence_path)          # The sequence to render
+            cmdline_args.append(sequence_path)  # The sequence to render
 
             output_path = '-MovieFolder="{}"'.format(destination_path)
-            cmdline_args.append(output_path)            # output folder, must match the work template
+            cmdline_args.append(
+                output_path
+            )  # output folder, must match the work template
 
             movie_name_arg = "-MovieName={}".format(content_name)
-            cmdline_args.append(movie_name_arg)         # output filename
+            cmdline_args.append(movie_name_arg)  # output filename
 
             cmdline_args.append("-game")
-            cmdline_args.append("-MovieSceneCaptureType=/Script/MovieSceneCapture.AutomatedLevelSequenceCapture")
+            cmdline_args.append(
+                "-MovieSceneCaptureType=/Script/MovieSceneCapture.AutomatedLevelSequenceCapture"
+            )
             cmdline_args.append("-ForceRes")
             cmdline_args.append("-Windowed")
             cmdline_args.append("-MovieCinematicMode=yes")
@@ -105,28 +146,47 @@ class GenericAsset(FTAssetType):
             else:
                 cmdline_args.append("-MovieFormat=Video")
             cmdline_args.append("-MovieFrameRate=" + str(fps))
-            ftrack_capture_args = ue.FTrackConnect.get_instance().get_capture_arguments()
+            ftrack_capture_args = (
+                ue.FTrackConnect.get_instance().get_capture_arguments()
+            )
             cmdline_args.append(ftrack_capture_args)
             cmdline_args.append("-NoTextureStreaming")
             cmdline_args.append("-NoLoadingScreen")
             cmdline_args.append("-NoScreenMessages")
             return cmdline_args
 
-        output_filepath = __generate_target_file_path(destination_path, content_name)
+        output_filepath = __generate_target_file_path(
+            destination_path, content_name
+        )
         if os.path.isfile(output_filepath):
-            # Must delete it first, otherwise the Sequencer will add a number in the filename
+            # Must delete it first, otherwise the Sequencer will add a number
+            # in the filename
             try:
                 os.remove(output_filepath)
             except OSError as e:
-                logging.warning("Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(output_filepath))
+                logging.warning(
+                    "Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(
+                        output_filepath
+                    )
+                )
                 return False, None
 
         # Unreal will be started in game mode to render the video
-        cmdline_args = __build_process_args(destination_path, unreal_map_path, sequence_path, content_name, fps,is_image_sequence)
+        cmdline_args = __build_process_args(
+            destination_path,
+            unreal_map_path,
+            sequence_path,
+            content_name,
+            fps,
+            is_image_sequence,
+        )
 
-        logging.info("Sequencer command-line arguments: {}".format(cmdline_args))
+        logging.info(
+            "Sequencer command-line arguments: {}".format(cmdline_args)
+        )
 
-        # Send the arguments as a single string because some arguments could contain spaces and we don't want those to be quoted
+        # Send the arguments as a single string because some arguments could
+        # contain spaces and we don't want those to be quoted
         subprocess.call(" ".join(cmdline_args))
 
         return os.path.isfile(output_filepath), output_filepath
@@ -135,18 +195,23 @@ class GenericAsset(FTAssetType):
         '''Publish the asset defined by the provided *iAObj*.'''
         componentName = "reviewable_asset"
         publishedComponents = []
-        dest_folder = os.path.join(ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures')
+        dest_folder = os.path.join(
+            ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures'
+        )
         unreal_map = ue.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
         movie_name = str(iAObj.assetName) + '_reviewable'
-        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name, masterSequence.get_display_rate().numerator)
+        rendered, path = self._render(
+            dest_folder,
+            unreal_map_path,
+            unreal_asset_path,
+            movie_name,
+            masterSequence.get_display_rate().numerator,
+        )
         if rendered:
             publishedComponents.append(
-                FTComponent(
-                    componentname=componentName,
-                    path=path
-                )
+                FTComponent(componentname=componentName, path=path)
             )
 
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
@@ -154,7 +219,9 @@ class GenericAsset(FTAssetType):
     def _validate_ftrack_asset(self, iAObj=None):
         # Validate the file
         if not os.path.exists(iAObj.filePath):
-            error_string = 'ftrack cannot import file "{}" because it does not exist'.format(iAObj.filePath)
+            error_string = 'ftrack cannot import file "{}" because it does not exist'.format(
+                iAObj.filePath
+            )
             logging.error(error_string)
             return False
 
@@ -162,7 +229,9 @@ class GenericAsset(FTAssetType):
         (_, src_filename) = os.path.split(iAObj.filePath)
         (_, src_extension) = os.path.splitext(src_filename)
         if src_extension.lower() != '.fbx':
-            error_string = 'ftrack in UE4 does not support importing files with extension "{}" please use .fbx'.format(src_extension)
+            error_string = 'ftrack in UE4 does not support importing files with extension "{}" please use .fbx'.format(
+                src_extension
+            )
             logging.error(error_string)
 
             return False
@@ -175,7 +244,9 @@ class GenericAsset(FTAssetType):
         task.options.import_materials = False
         task.options.import_animations = False
         task.options.override_full_name = True
-        task.options.skeletal_mesh_import_data.normal_import_method = ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+        task.options.skeletal_mesh_import_data.normal_import_method = (
+            ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+        )
         task.replace_existing = True
         task.automated = True
         task.save = True
@@ -184,12 +255,21 @@ class GenericAsset(FTAssetType):
     def _find_asset_instance(self, rootPath, assetVersionId, assetType):
         ftrack_asset_version = ftrack.AssetVersion(assetVersionId)
         ftrack_asset_id = ftrack_asset_version.getParent().getId()
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path(rootPath,True)
+        assets = (
+            ue.AssetRegistryHelpers()
+            .get_asset_registry()
+            .get_assets_by_path(rootPath, True)
+        )
         for asset_data in assets:
-            #unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs to be
+            # in memory....
             asset = asset_data.get_asset()
-            assetId = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetId')
-            currentAssetType = ue.EditorAssetLibrary.get_metadata_tag(asset, 'ftrack.AssetType')
+            assetId = ue.EditorAssetLibrary.get_metadata_tag(
+                asset, 'ftrack.AssetId'
+            )
+            currentAssetType = ue.EditorAssetLibrary.get_metadata_tag(
+                asset, 'ftrack.AssetType'
+            )
             if assetId and currentAssetType:
                 if assetId == ftrack_asset_id and currentAssetType == assetType:
                     return asset
@@ -197,16 +277,16 @@ class GenericAsset(FTAssetType):
 
     def _get_asset_relative_path(self, ftrack_asset_version):
         task = ftrack_asset_version.getTask()
-        #location.
+        # location.
         session = ftrack_api.Session()
         linksForTask = session.query(
-            'select link from Task where id is "'+ task.getId() + '"'
+            'select link from Task where id is "' + task.getId() + '"'
         ).first()['link']
         relative_path = ""
-        #remove the project
+        # remove the project
         linksForTask.pop(0)
         for link in linksForTask:
-            relative_path += link['name'].replace(' ','_')
+            relative_path += link['name'].replace(' ', '_')
             relative_path += '/'
         return relative_path
 
@@ -217,20 +297,26 @@ class GenericAsset(FTAssetType):
         if not self._validate_ftrack_asset(iAObj):
             return False
 
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        assets = (
+            ue.AssetRegistryHelpers()
+            .get_asset_registry()
+            .get_assets_by_path('/Game', True)
+        )
         for asset_data in assets:
-            #unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs to be
+            # in memory....
             asset = asset_data.get_asset()
-            if str(asset.get_name()) == applicationObject:      
+            if str(asset.get_name()) == applicationObject:
                 task = self._get_asset_import_task()
                 task.filename = iAObj.filePath
                 task.destination_path = str(asset_data.package_path)
                 task.destination_name = str(asset_data.asset_name)
-                ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+                ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks(
+                    [task]
+                )
                 if len(task.imported_object_paths):
                     self.updateMetaData(iAObj, asset)
                     return True
-
 
         return False
 
@@ -241,29 +327,55 @@ class GenericAsset(FTAssetType):
     def addMetaData(self, iAObj, linked_obj):
         '''Add meta data to object'''
         if linked_obj:
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersion", iAObj.assetVersion)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetPath", iAObj.filePath)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetName", iAObj.assetName)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.ComponentName", iAObj.componentName)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetType", iAObj.assetType)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetId", iAObj.assetId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetComponentId", iAObj.componentId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId)
-            ue.EditorAssetLibrary.set_metadata_tag(linked_obj, "ftrack.IntegrationVersion", "0.0.1") # to be changed at cleanup
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetVersion", iAObj.assetVersion
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetPath", iAObj.filePath
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetName", iAObj.assetName
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.ComponentName", iAObj.componentName
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetType", iAObj.assetType
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetId", iAObj.assetId
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetComponentId", iAObj.componentId
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId
+            )
+            ue.EditorAssetLibrary.set_metadata_tag(
+                linked_obj, "ftrack.IntegrationVersion", "0.0.1"
+            )  # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
     def _rename_object_with_prefix(self, loaded_obj, prefix):
         '''This method allow renaming a UObject to put a prefix to work along with UE4 naming convention
             https://github.com/Allar/ue4-style-guide'''
-        assert(loaded_obj != None)
+        assert loaded_obj != None
         newNameWithPrefix = ''
         if loaded_obj:
-            object_ad = ue.EditorAssetLibrary.find_asset_data(loaded_obj.get_path_name())
+            object_ad = ue.EditorAssetLibrary.find_asset_data(
+                loaded_obj.get_path_name()
+            )
             if object_ad:
-                if ue.EditorAssetLibrary.rename_asset(object_ad.object_path, str(object_ad.package_path) + '/' + prefix +'_'  + str(object_ad.asset_name)):
-                    newNameWithPrefix = prefix +'_'  + str(object_ad.asset_name)
+                if ue.EditorAssetLibrary.rename_asset(
+                    object_ad.object_path,
+                    str(object_ad.package_path)
+                    + '/'
+                    + prefix
+                    + '_'
+                    + str(object_ad.asset_name),
+                ):
+                    newNameWithPrefix = prefix + '_' + str(object_ad.asset_name)
         return newNameWithPrefix
-
 
     @staticmethod
     def importOptions():
@@ -273,6 +385,7 @@ class GenericAsset(FTAssetType):
         </tab>
         '''
         return xml
+
 
 class RigAsset(GenericAsset):
     def __init__(self):
@@ -288,13 +401,21 @@ class RigAsset(GenericAsset):
         task.options.automated_import_should_detect_type = False
         task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_SKELETAL_MESH
         task.options.skeletal_mesh_import_data = ue.FbxSkeletalMeshImportData()
-        task.options.skeletal_mesh_import_data.set_editor_property('use_t0_as_ref_pose',True)
-        task.options.skeletal_mesh_import_data.normal_import_method = ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
-        task.options.skeletal_mesh_import_data.set_editor_property('import_morph_targets',True)
-        task.options.skeletal_mesh_import_data.set_editor_property('import_meshes_in_bone_hierarchy', True)
+        task.options.skeletal_mesh_import_data.set_editor_property(
+            'use_t0_as_ref_pose', True
+        )
+        task.options.skeletal_mesh_import_data.normal_import_method = (
+            ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+        )
+        task.options.skeletal_mesh_import_data.set_editor_property(
+            'import_morph_targets', True
+        )
+        task.options.skeletal_mesh_import_data.set_editor_property(
+            'import_meshes_in_bone_hierarchy', True
+        )
         task.replace_existing = True
         task.automated = True
-        #task.save = True
+        # task.save = True
         return task
 
     def importAsset(self, iAObj=None):
@@ -310,71 +431,91 @@ class RigAsset(GenericAsset):
 
         asset_name = ftrack_asset_version.getParent().get('name')
         asset_name = upperFirst(asset_name)
-        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
+        import_path = (
+            '/Game/'
+            + self._get_asset_relative_path(ftrack_asset_version)
+            + asset_name
+        )
 
         # find out if ftrack node already exists in th project
         ftrack_old_node = None
 
         try:
             ftrack_old_node = self._find_asset_instance(
-                                                import_path,
-                                                iAObj.assetVersionId,
-                                                iAObj.assetType)
+                import_path, iAObj.assetVersionId, iAObj.assetType
+            )
         except Exception as error:
             logging.error(error)
 
         importedAssetNames = []
-        if ftrack_old_node!=None:
-            msgBox=QMessageBox()
+        if ftrack_old_node != None:
+            msgBox = QMessageBox()
             msgBox.setText('This asset already exists in the project!')
             msgBox.setInformativeText("Do you want to reimport this asset?")
-            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No )
+            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             msgBox.setDefaultButton(QMessageBox.No)
             ret = msgBox.exec_()
             old_node_name = str(ftrack_old_node.get_name())
 
-            if ret==QMessageBox.Yes:
-                #Delete old asset
-                self.changeVersion(iAObj,old_node_name)
+            if ret == QMessageBox.Yes:
+                # Delete old asset
+                self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
                 logging.info(
-                        'Changed version of existing asset ' +
-                        old_node_name)
+                    'Changed version of existing asset ' + old_node_name
+                )
 
             elif ret == QMessageBox.No:
                 logging.info(
-                        'Not changing version of existing asset ' +
-                        old_node_name)
+                    'Not changing version of existing asset ' + old_node_name
+                )
 
         else:
             task = self._get_asset_import_task()
             task.filename = fbx_path
             task.destination_path = import_path
-            task.options.create_physics_asset = iAObj.options['CreatePhysicsAsset']
-            skeletons = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_class('Skeleton')
+            task.options.create_physics_asset = iAObj.options[
+                'CreatePhysicsAsset'
+            ]
+            skeletons = (
+                ue.AssetRegistryHelpers()
+                .get_asset_registry()
+                .get_assets_by_class('Skeleton')
+            )
             skeletonName = iAObj.options['ChooseSkeleton']
 
             skeletonAD = None
             for skeleton in skeletons:
-                if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
+                if skeleton.asset_name == skeletonName:
+                    skeletonAD = skeleton
 
             if skeletonAD != None:
-                task.options.set_editor_property('skeleton',skeletonAD.get_asset())
+                task.options.set_editor_property(
+                    'skeleton', skeletonAD.get_asset()
+                )
             task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
-            loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            importedAssetNames.append(self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK'))
+            loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(
+                task.imported_object_paths[0]
+            )
+            importedAssetNames.append(
+                self._rename_object_with_prefix(loaded_skeletal_mesh, 'SK')
+            )
 
             mesh_skeleton = loaded_skeletal_mesh.skeleton
             if mesh_skeleton:
-                importedAssetNames.append(self._rename_object_with_prefix(mesh_skeleton, 'SKEL'))
+                importedAssetNames.append(
+                    self._rename_object_with_prefix(mesh_skeleton, 'SKEL')
+                )
 
             mesh_physics_asset = loaded_skeletal_mesh.physics_asset
             if mesh_physics_asset:
-                importedAssetNames.append(self._rename_object_with_prefix(mesh_physics_asset, 'PHAT'))
+                importedAssetNames.append(
+                    self._rename_object_with_prefix(mesh_physics_asset, 'PHAT')
+                )
 
-            #add meta data
+            # add meta data
             try:
                 self.addMetaData(iAObj, loaded_skeletal_mesh)
                 self.addMetaData(iAObj, mesh_skeleton)
@@ -384,28 +525,38 @@ class RigAsset(GenericAsset):
 
             return importedAssetNames
 
-
     def changeVersion(self, iAObj=None, applicationObject=None):
         '''Change the version of the asset defined in *iAObj*
         and *applicationObject*
         '''
         if not self._validate_ftrack_asset(iAObj):
             return False
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        assets = (
+            ue.AssetRegistryHelpers()
+            .get_asset_registry()
+            .get_assets_by_path('/Game', True)
+        )
         for asset_data in assets:
-            #rig asset import 
+            # rig asset import
             if str(asset_data.get_class().get_name()) == 'SkeletalMesh':
-                #unfortunately to access the tag values objects needs to be in memory....
+                # unfortunately to access the tag values objects needs to
+                # be in memory....
                 asset = asset_data.get_asset()
-                if str(asset.get_name()) == applicationObject:      
+                if str(asset.get_name()) == applicationObject:
                     task = self._get_asset_import_task()
-                    task.options.create_physics_asset = iAObj.options['CreatePhysicsAsset']
-                    task.options.import_materials = iAObj.options['importMaterial']
-                    task.options.set_editor_property('skeleton',asset.skeleton)
+                    task.options.create_physics_asset = iAObj.options[
+                        'CreatePhysicsAsset'
+                    ]
+                    task.options.import_materials = iAObj.options[
+                        'importMaterial'
+                    ]
+                    task.options.set_editor_property('skeleton', asset.skeleton)
                     task.filename = iAObj.filePath
                     task.destination_path = str(asset_data.package_path)
                     task.destination_name = str(asset_data.asset_name)
-                    ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+                    ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks(
+                        [task]
+                    )
                     if len(task.imported_object_paths):
                         self.updateMetaData(iAObj, asset)
                         return True
@@ -444,11 +595,12 @@ class RigAsset(GenericAsset):
         skeletons = assetRegistry.get_assets_by_class('Skeleton')
         skeletonsInTheScene = '''<optionitem name="None"/>'''
         for skeleton in skeletons:
-            str= '''<optionitem name="{0}"/>'''.format(skeleton.asset_name)
+            str = '''<optionitem name="{0}"/>'''.format(skeleton.asset_name)
             skeletonsInTheScene += str
 
         xml = xml.format(skeletonsInTheScene)
         return xml
+
 
 class AnimationAsset(GenericAsset):
     def __init__(self):
@@ -463,14 +615,19 @@ class AnimationAsset(GenericAsset):
         task.options.import_animations = True
         task.options.create_physics_asset = False
         task.options.automated_import_should_detect_type = False
-        task.options.set_editor_property('mesh_type_to_import', ue.FBXImportType.FBXIT_ANIMATION)
+        task.options.set_editor_property(
+            'mesh_type_to_import', ue.FBXImportType.FBXIT_ANIMATION
+        )
         task.options.anim_sequence_import_data = ue.FbxAnimSequenceImportData()
-        task.options.anim_sequence_import_data.set_editor_property('import_bone_tracks',True)
-        task.options.anim_sequence_import_data.set_editor_property('import_custom_attribute',True)
+        task.options.anim_sequence_import_data.set_editor_property(
+            'import_bone_tracks', True
+        )
+        task.options.anim_sequence_import_data.set_editor_property(
+            'import_custom_attribute', True
+        )
         task.replace_existing = True
         task.automated = True
         return task
-
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
@@ -484,24 +641,31 @@ class AnimationAsset(GenericAsset):
 
         skeletonAD = None
         for skeleton in skeletons:
-            if skeleton.asset_name == skeletonName:  skeletonAD = skeleton
-    
+            if skeleton.asset_name == skeletonName:
+                skeletonAD = skeleton
+
         fbx_path = iAObj.filePath
 
-        ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)       
+        ftrack_asset_version = ftrack.AssetVersion(iAObj.assetVersionId)
         asset_name = ftrack_asset_version.getParent().get('name')
-        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
+        import_path = (
+            '/Game/'
+            + self._get_asset_relative_path(ftrack_asset_version)
+            + asset_name
+        )
 
-        #ensure there is no spaces
-        import_path = import_path.replace(' ','_')
+        # ensure there is no spaces
+        import_path = import_path.replace(' ', '_')
         ftrack_old_node = None
         try:
-            ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
+            ftrack_old_node = self._find_asset_instance(
+                import_path, iAObj.assetVersionId, iAObj.assetType
+            )
         except Exception as error:
             logging.error(error)
 
         importedAssetNames = []
-        if ftrack_old_node!=None:
+        if ftrack_old_node != None:
             msgBox = QMessageBox()
             msgBox.setText('This asset already exists in the project!')
             msgBox.setInformativeText("Do you want to reimport this asset?")
@@ -509,47 +673,63 @@ class AnimationAsset(GenericAsset):
             msgBox.setDefaultButton(QMessageBox.No)
             ret = msgBox.exec_()
             old_node_name = str(ftrack_old_node.get_name())
-        
+
             if ret == QMessageBox.Yes:
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info('Changed version of existing asset ' + 
-                            old_node_name)
-        
+                logging.info(
+                    'Changed version of existing asset ' + old_node_name
+                )
+
             elif ret == QMessageBox.No:
-                logging.info('Not changing version of existing asset ' + 
-                            old_node_name)
+                logging.info(
+                    'Not changing version of existing asset ' + old_node_name
+                )
 
         else:
             task = self._get_asset_import_task()
             if iAObj.options['UseCustomRange']:
-                task.options.anim_sequence_import_data.set_editor_property('animation_length', ue.FBXAnimationLengthImportType.FBXALIT_SET_RANGE)
+                task.options.anim_sequence_import_data.set_editor_property(
+                    'animation_length',
+                    ue.FBXAnimationLengthImportType.FBXALIT_SET_RANGE,
+                )
                 rangeInterval = ue.Int32Interval()
-                rangeInterval.set_editor_property('min', iAObj.options['AnimRangeMin'])
-                rangeInterval.set_editor_property('max', iAObj.options['AnimRangeMax'])
-                task.options.anim_sequence_import_data.set_editor_property('frame_import_range', rangeInterval)
+                rangeInterval.set_editor_property(
+                    'min', iAObj.options['AnimRangeMin']
+                )
+                rangeInterval.set_editor_property(
+                    'max', iAObj.options['AnimRangeMax']
+                )
+                task.options.anim_sequence_import_data.set_editor_property(
+                    'frame_import_range', rangeInterval
+                )
             else:
-                task.options.anim_sequence_import_data.set_editor_property('animation_length', ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME)
+                task.options.anim_sequence_import_data.set_editor_property(
+                    'animation_length',
+                    ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME,
+                )
 
-            task.options.set_editor_property('skeleton',skeletonAD.get_asset())
+            task.options.set_editor_property('skeleton', skeletonAD.get_asset())
             task.filename = fbx_path
             task.destination_path = import_path
-            
+
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
-            loaded_anim = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            importedAssetNames.append(self._rename_object_with_prefix(loaded_anim,'A'))
+            loaded_anim = ue.EditorAssetLibrary.load_asset(
+                task.imported_object_paths[0]
+            )
+            importedAssetNames.append(
+                self._rename_object_with_prefix(loaded_anim, 'A')
+            )
 
             # Add ftrack data to object
             try:
-                self.addMetaData(iAObj,loaded_anim)
+                self.addMetaData(iAObj, loaded_anim)
             except Exception as error:
                 logging.error(error)
 
-
         return importedAssetNames
-
 
     def changeVersion(self, iAObj=None, applicationObject=None):
         '''Change the version of the asset defined in *iAObj*
@@ -559,17 +739,26 @@ class AnimationAsset(GenericAsset):
         if not self._validate_ftrack_asset(iAObj):
             return False
 
-        assets = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_path('/Game',True)
+        assets = (
+            ue.AssetRegistryHelpers()
+            .get_asset_registry()
+            .get_assets_by_path('/Game', True)
+        )
         for asset_data in assets:
-            #unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs to be
+            # in memory....
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
                 task = self._get_asset_import_task()
-                task.options.set_editor_property('skeleton',asset.get_editor_property('skeleton'))
+                task.options.set_editor_property(
+                    'skeleton', asset.get_editor_property('skeleton')
+                )
                 task.filename = iAObj.filePath
                 task.destination_path = str(asset_data.package_path)
                 task.destination_name = str(asset_data.asset_name)
-                ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+                ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks(
+                    [task]
+                )
                 if len(task.imported_object_paths):
                     self.updateMetaData(iAObj, asset)
                     return True
@@ -608,7 +797,7 @@ class AnimationAsset(GenericAsset):
         skeletons = assetRegistry.get_assets_by_class('Skeleton')
         skeletonsInTheScene = ""
         for skeleton in skeletons:
-            str= '''<optionitem name="{0}"/>'''.format(skeleton.asset_name)
+            str = '''<optionitem name="{0}"/>'''.format(skeleton.asset_name)
             skeletonsInTheScene += str
 
         xml = xml.format(skeletonsInTheScene)
@@ -618,7 +807,6 @@ class AnimationAsset(GenericAsset):
 class GeometryAsset(GenericAsset):
     def __init__(self):
         super(GeometryAsset, self).__init__()
-
 
     def _get_asset_import_task(self):
         task = ue.AssetImportTask()
@@ -632,7 +820,9 @@ class GeometryAsset(GenericAsset):
         task.options.automated_import_should_detect_type = False
         task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_STATIC_MESH
         task.options.static_mesh_import_data = ue.FbxStaticMeshImportData()
-        task.options.static_mesh_import_data.set_editor_property('combine_meshes', True)
+        task.options.static_mesh_import_data.set_editor_property(
+            'combine_meshes', True
+        )
         task.replace_existing = True
         task.automated = True
         task.save = True
@@ -650,13 +840,19 @@ class GeometryAsset(GenericAsset):
         asset_name = ftrack_asset.get('name')
         asset_name = upperFirst(asset_name)
 
-        import_path = '/Game/' + self._get_asset_relative_path(ftrack_asset_version) + asset_name
-        
-        #ensure there is no spaces
-        import_path = import_path.replace(' ','_')
+        import_path = (
+            '/Game/'
+            + self._get_asset_relative_path(ftrack_asset_version)
+            + asset_name
+        )
+
+        # ensure there is no spaces
+        import_path = import_path.replace(' ', '_')
         ftrack_old_node = None
         try:
-            ftrack_old_node = self._find_asset_instance(import_path, iAObj.assetVersionId, iAObj.assetType)
+            ftrack_old_node = self._find_asset_instance(
+                import_path, iAObj.assetVersionId, iAObj.assetType
+            )
         except Exception as error:
             logging.error(error)
 
@@ -674,12 +870,14 @@ class GeometryAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info('Changed version of existing asset ' + 
-                            old_node_name)
+                logging.info(
+                    'Changed version of existing asset ' + old_node_name
+                )
 
             elif ret == QMessageBox.No:
-                logging.info('Not changing version of existing asset ' +
-                                old_node_name)
+                logging.info(
+                    'Not changing version of existing asset ' + old_node_name
+                )
 
         else:
             task = self._get_asset_import_task()
@@ -688,8 +886,12 @@ class GeometryAsset(GenericAsset):
             task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
-            loaded_mesh = ue.EditorAssetLibrary.load_asset(task.imported_object_paths[0])
-            importedAssetNames.append(self._rename_object_with_prefix(loaded_mesh,'S'))
+            loaded_mesh = ue.EditorAssetLibrary.load_asset(
+                task.imported_object_paths[0]
+            )
+            importedAssetNames.append(
+                self._rename_object_with_prefix(loaded_mesh, 'S')
+            )
 
             # add meta data
             try:
@@ -721,8 +923,9 @@ class GeometryAsset(GenericAsset):
             </row>
         </tab>
         '''
-       
+
         return xml
+
 
 class ImgSequenceAsset(GenericAsset):
     def __init__(self):
@@ -730,7 +933,9 @@ class ImgSequenceAsset(GenericAsset):
 
     def publishAsset(self, iAObj, masterSequence):
         '''Publish the asset defined by the provided *iAObj*.'''
-        dest_folder = os.path.join(ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures')
+        dest_folder = os.path.join(
+            ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures'
+        )
         unreal_map = ue.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
@@ -738,19 +943,29 @@ class ImgSequenceAsset(GenericAsset):
 
         publishedComponents = []
         if publishReviewable:
-            componentName = "reviewable_asset"    
+            componentName = "reviewable_asset"
             movie_name = str(iAObj.assetName) + '_reviewable'
-            rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, movie_name, masterSequence.get_display_rate().numerator)
+            rendered, path = self._render(
+                dest_folder,
+                unreal_map_path,
+                unreal_asset_path,
+                movie_name,
+                masterSequence.get_display_rate().numerator,
+            )
             if rendered:
                 publishedComponents.append(
-                    FTComponent(
-                        componentname=componentName,
-                        path=path
-                    )
+                    FTComponent(componentname=componentName, path=path)
                 )
         imgComponentName = "image_sequence"
 
-        rendered, path = self._render(dest_folder, unreal_map_path, unreal_asset_path, str(iAObj.assetName), masterSequence.get_display_rate().numerator, True)
+        rendered, path = self._render(
+            dest_folder,
+            unreal_map_path,
+            unreal_asset_path,
+            str(iAObj.assetName),
+            masterSequence.get_display_rate().numerator,
+            True,
+        )
 
         # try to get start and end frames from sequence this allow local control for test publish(subset of sequence)
         frameStart = masterSequence.get_playback_start()
@@ -758,15 +973,10 @@ class ImgSequenceAsset(GenericAsset):
         base_file_path = path[:-12] if path.endswith('.{frame}.exr') else path
 
         imgComponentPath = "{0}.%04d.{1} [{2}-{3}]".format(
-            base_file_path,
-            'exr',
-            frameStart,
-            frameEnd)
+            base_file_path, 'exr', frameStart, frameEnd
+        )
         publishedComponents.append(
-            FTComponent(
-                componentname=imgComponentName,
-                path=imgComponentPath
-            )
+            FTComponent(componentname=imgComponentName, path=imgComponentPath)
         )
 
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
@@ -782,7 +992,6 @@ class ImgSequenceAsset(GenericAsset):
         </tab>
         '''
         return xml
-
 
 
 def registerAssetTypes():

@@ -33,8 +33,8 @@ UNREAL_ICON_PATH = os.path.join(RESOURCE_PATH, 'icon')
 UNREAL_PLUGINS_PATH = os.path.join(RESOURCE_PATH, 'plugins')
 
 
-with open(os.path.join(
-    SOURCE_PATH, 'ftrack_connect_unreal_engine', '_version.py')
+with open(
+    os.path.join(SOURCE_PATH, 'ftrack_connect_unreal_engine', '_version.py')
 ) as _version_file:
     VERSION = re.match(
         r'.*__version__ = \'(.*?)\'', _version_file.read(), re.DOTALL
@@ -57,9 +57,9 @@ class PyTest(TestCommand):
     def run_tests(self):
         '''Import pytest and run.'''
         import pytest
+
         errno = pytest.main(self.test_args)
         raise SystemExit(errno)
-
 
 
 class BuildPlugin(Command):
@@ -83,25 +83,18 @@ class BuildPlugin(Command):
         # Copy plugin files
         shutil.copytree(
             UNREAL_PLUGINS_PATH,
-            os.path.join(STAGING_PATH, 'resource', 'plugins')
+            os.path.join(STAGING_PATH, 'resource', 'plugins'),
         )
 
         # Copy icon files
         shutil.copytree(
-            UNREAL_ICON_PATH,
-            os.path.join(STAGING_PATH, 'resource', 'icon')
+            UNREAL_ICON_PATH, os.path.join(STAGING_PATH, 'resource', 'icon')
         )
         # Copy hook files
-        shutil.copytree(
-            HOOK_PATH,
-            os.path.join(STAGING_PATH, 'hook')
-        )
+        shutil.copytree(HOOK_PATH, os.path.join(STAGING_PATH, 'hook'))
 
         # Copy readme file
-        shutil.copyfile(
-            README_PATH,
-            os.path.join(STAGING_PATH, 'README.md')
-        )
+        shutil.copyfile(README_PATH, os.path.join(STAGING_PATH, 'README.md'))
 
         # Install local dependencies
         pip_main(
@@ -110,19 +103,15 @@ class BuildPlugin(Command):
                 '.',
                 '--target',
                 os.path.join(STAGING_PATH, 'dependencies'),
-                '--process-dependency-links'
+                '--process-dependency-links',
             ]
         )
 
-
         # Generate plugin zip
         shutil.make_archive(
-            os.path.join(
-                BUILD_PATH,
-                PLUGIN_NAME.format(VERSION)
-            ),
+            os.path.join(BUILD_PATH, PLUGIN_NAME.format(VERSION)),
             'zip',
-            STAGING_PATH
+            STAGING_PATH,
         )
 
 
@@ -138,23 +127,14 @@ setup(
     author_email='support@ftrack.com',
     license='Apache License (2.0)',
     packages=find_packages(SOURCE_PATH),
-    package_dir={
-        '': 'source'
-    },
+    package_dir={'': 'source'},
     package_data={'': ['*.ico']},
     setup_requires=[
         'sphinx >= 1.2.2, < 2',
         'sphinx_rtd_theme >= 0.1.6, < 2',
-        'lowdown >= 0.1.0, < 1'
+        'lowdown >= 0.1.0, < 1',
     ],
-    install_requires=[
-        'appdirs',
-    ],
-    tests_require=[
-        'pytest >= 2.3.5, < 3',
-    ],
-    cmdclass={
-        'test': PyTest,
-        'build_plugin': BuildPlugin,
-    }
+    install_requires=['appdirs'],
+    tests_require=['pytest >= 2.3.5, < 3'],
+    cmdclass={'test': PyTest, 'build_plugin': BuildPlugin},
 )

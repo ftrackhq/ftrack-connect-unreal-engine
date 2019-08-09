@@ -4,5 +4,7 @@
 try:
     import ftrack_connect_unreal_engine.bootstrap
 except ImportError:
-    print('ftrack connect Unreal plugin is not well initialized ' + 
-            'or you did not start Unreal from ftrack connect')
+    print (
+        'ftrack connect Unreal plugin is not well initialized '
+        + 'or you did not start Unreal from ftrack connect'
+    )

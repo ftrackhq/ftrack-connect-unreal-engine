@@ -10,13 +10,11 @@ from ftrack_connect.ui.theme import applyTheme
 class FtrackUnrealInfoDialog(FtrackInfoDialog):
     def __init__(self, parent=None, connector=None):
         super(FtrackUnrealInfoDialog, self).__init__(
-            parent=parent,
-            connector=connector
+            parent=parent, connector=connector
         )
 
         self.headerWidget.setSizePolicy(
-            QtWidgets.QSizePolicy.Expanding,
-            QtWidgets.QSizePolicy.Fixed
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         applyTheme(self, 'integration')
 

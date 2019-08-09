@@ -14,10 +14,12 @@ import ftrack_connect.application
 cwd = os.path.dirname(__file__)
 sources = os.path.abspath(os.path.join(cwd, '..', 'dependencies'))
 ftrack_connect_unreal_engine_resource_path = os.path.abspath(
-    os.path.join(cwd, '..', 'resource'))
+    os.path.join(cwd, '..', 'resource')
+)
 sys.path.append(sources)
 
 import ftrack_connect_unreal_engine
+
 
 class LaunchApplicationAction(object):
     '''Discover and launch unreal engine.'''
@@ -55,9 +57,9 @@ class LaunchApplicationAction(object):
         if not selection:
             return False
 
-        if (len(selection) != 1 or selection[0]['entityType'] != 'task'):
+        if len(selection) != 1 or selection[0]['entityType'] != 'task':
             return False
-    
+
         entity = selection[0]
         task = ftrack.Task(entity['entityId'])
 
@@ -72,7 +74,7 @@ class LaunchApplicationAction(object):
             'topic=ftrack.action.discover and source.user.username={0}'.format(
                 getpass.getuser()
             ),
-            self.discover
+            self.discover,
         )
 
         ftrack.EVENT_HUB.subscribe(
@@ -80,12 +82,12 @@ class LaunchApplicationAction(object):
             'and data.actionIdentifier={1}'.format(
                 getpass.getuser(), self.identifier
             ),
-            self.launch
+            self.launch,
         )
 
         ftrack.EVENT_HUB.subscribe(
             'topic=ftrack.connect.plugin.debug-information',
-            self.get_version_information
+            self.get_version_information,
         )
 
     def discover(self, event):
@@ -101,9 +103,7 @@ class LaunchApplicationAction(object):
 
         '''
 
-        if not self.is_valid_selection(
-                event['data'].get('selection', [])
-        ):
+        if not self.is_valid_selection(event['data'].get('selection', [])):
             return
 
         items = []
@@ -115,37 +115,33 @@ class LaunchApplicationAction(object):
         for application in applications:
             applicationIdentifier = application['identifier']
             label = application['label']
-            items.append({
-                'actionIdentifier': self.identifier,
-                'label': label,
-                'variant': application.get('variant', None),
-                'description': application.get('description', None),
-                'icon': application.get('icon', 'default'),
-                'applicationIdentifier': applicationIdentifier
-            })
+            items.append(
+                {
+                    'actionIdentifier': self.identifier,
+                    'label': label,
+                    'variant': application.get('variant', None),
+                    'description': application.get('description', None),
+                    'icon': application.get('icon', 'default'),
+                    'applicationIdentifier': applicationIdentifier,
+                }
+            )
 
-        return {
-            'items': items
-        }
+        return {'items': items}
 
     def launch(self, event):
         '''Callback method for Unreal action.'''
-        applicationIdentifier = (
-            event['data']['applicationIdentifier']
-        )
+        applicationIdentifier = event['data']['applicationIdentifier']
 
         context = event['data'].copy()
         context['source'] = event['source']
 
-        return self.launcher.launch(
-            applicationIdentifier, context
-        )
+        return self.launcher.launch(applicationIdentifier, context)
 
     def get_version_information(self, event):
         '''Return version information.'''
         return dict(
             name='ftrack connect unreal engine',
-            version=ftrack_connect_unreal_engine.__version__
+            version=ftrack_connect_unreal_engine.__version__,
         )
 
 
@@ -157,16 +153,21 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
         prefix = None
 
         document = open(
-            "C:\ProgramData\Epic\UnrealEngineLauncher\LauncherInstalled.dat",
-            "r+")
+            "C:\\ProgramData/Epic/UnrealEngineLauncher/LauncherInstalled.dat",
+            "r+",
+        )
 
         context = document.read()
 
         import ast
+
         for item in ast.literal_eval(context)['InstallationList']:
             if item['AppName'].find('UE_') == 0:
-                prefix = item['InstallLocation'].split(
-                    '\\' + item['AppName'])[0].split('\\')
+                prefix = (
+                    item['InstallLocation']
+                    .split('\\' + item['AppName'])[0]
+                    .split('\\')
+                )
 
         document.close()
 
@@ -179,17 +180,19 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
 
         if sys.platform == 'darwin':
             prefix = ['/', 'Users', 'Shared', 'Epic Games']
-            applications.extend(self._searchFilesystem(
-                expression=prefix + [
-                    'UE_.+', 'Engine', 'Binaries', 'Mac', 'UE4Editor.app'],
-                versionExpression=re.compile(
-                    r'(?P<version>[\d.]+[\d.]+[\d.])'
-                ),
-                applicationIdentifier='Unreal_{version}',
-                label='Unreal Engine',
-                variant='{version}',
-                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
-            ))
+            applications.extend(
+                self._searchFilesystem(
+                    expression=prefix
+                    + ['UE_.+', 'Engine', 'Binaries', 'Mac', 'UE4Editor.app'],
+                    versionExpression=re.compile(
+                        r'(?P<version>[\d.]+[\d.]+[\d.])'
+                    ),
+                    applicationIdentifier='Unreal_{version}',
+                    label='Unreal Engine',
+                    variant='{version}',
+                    icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png',
+                )
+            )
 
         elif sys.platform == 'win32':
             prefix = ['C:\\', 'Program Files.*']
@@ -202,22 +205,28 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 r'(?P<version>[\d.]+[\d.]+[\d.])'
             )
 
-            applications.extend(self._searchFilesystem(
-                expression=(
-                    prefix +
-                    ['UE.+', 'Engine', 'Binaries', 'Win64', 'UE4Editor.exe']
-                ),
-                versionExpression=unreal_version_expression,
-                label='Unreal Engine',
-                variant='{version}',
-                applicationIdentifier='Unreal_{version}',
-                icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png'
-            ))
+            applications.extend(
+                self._searchFilesystem(
+                    expression=(
+                        prefix
+                        + [
+                            'UE.+',
+                            'Engine',
+                            'Binaries',
+                            'Win64',
+                            'UE4Editor.exe',
+                        ]
+                    ),
+                    versionExpression=unreal_version_expression,
+                    label='Unreal Engine',
+                    variant='{version}',
+                    applicationIdentifier='Unreal_{version}',
+                    icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png',
+                )
+            )
 
         self.logger.debug(
-            'Discovered applications:\n{0}'.format(
-                pprint.pformat(applications)
-            )
+            'Discovered applications:\n{0}'.format(pprint.pformat(applications))
         )
 
         return applications
@@ -226,9 +235,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
 class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
     '''Custom launcher to modify environment before launch.'''
 
-    def _getApplicationEnvironment(
-        self, application, context=None
-    ):
+    def _getApplicationEnvironment(self, application, context=None):
         '''Override to modify environment before launch.'''
 
         # Make sure to call super to retrieve original environment
@@ -236,7 +243,6 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         environment = super(
             ApplicationLauncher, self
         )._getApplicationEnvironment(application, context)
-
 
         entity = context['selection'][0]
         environment['FTRACK_CONTEXTID'] = entity['entityId']
@@ -263,12 +269,10 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         environment['FTRACK_SHOTID'] = task.get('parent_id')
 
         environment = ftrack_connect.application.appendPath(
-            sources,
-            'PYTHONPATH',
-            environment
+            sources, 'PYTHONPATH', environment
         )
 
-        #get absolute path of ftrack installation from executable
+        # get absolute path of ftrack installation from executable
         ftrack_installation_path = os.path.dirname(sys.executable)
 
         self.logger.debug(
@@ -278,21 +282,17 @@ class ApplicationLauncher(ftrack_connect.application.ApplicationLauncher):
         )
 
         environment = ftrack_connect.application.appendPath(
-            ftrack_installation_path,
-            'PYTHONPATH',
-            environment
+            ftrack_installation_path, 'PYTHONPATH', environment
         )
 
         environment = ftrack_connect.application.appendPath(
-           ftrack_installation_path,
-           'QT_PLUGIN_PATH',
-           environment
-       )
+            ftrack_installation_path, 'QT_PLUGIN_PATH', environment
+        )
 
         environment = ftrack_connect.application.appendPath(
             os.path.join(ftrack_installation_path, "library.zip"),
             'PYTHONPATH',
-            environment
+            environment,
         )
 
         # Always return the environment at the end.
@@ -313,9 +313,7 @@ def register(registry, **kw):
     applicationStore = ApplicationStore()
 
     # Create a launcher with the store containing applications.
-    launcher = ApplicationLauncher(
-        applicationStore
-    )
+    launcher = ApplicationLauncher(applicationStore)
 
     # Create action and register to respond to discover and launch actions.
     action = LaunchApplicationAction(applicationStore, launcher)
