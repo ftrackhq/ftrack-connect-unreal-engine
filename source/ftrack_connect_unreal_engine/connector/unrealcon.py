@@ -25,7 +25,7 @@ class Connector(maincon.Connector):
     @staticmethod
     def getCurrentEntity():
         return ftrack.Task(
-            os.getenv("FTRACK_TASKID"), os.getenv("FTRACK_SHOTID")
+            os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID')
         )
 
     @staticmethod
@@ -33,17 +33,17 @@ class Connector(maincon.Connector):
         session = ftrack_api.Session()
         linksForTask = session.query(
             'select link from Task where id is "' + task.getId() + '"'
-        ).first()["link"]
+        ).first()['link']
         # Remove task itself
         linksForTask.pop()
         linksForTask.reverse()
         parentShotSequence = None
 
         for item in linksForTask:
-            entity = session.get(item["type"], item["id"])
+            entity = session.get(item['type'], item['id'])
             if (
-                entity.__class__.__name__ == "Shot"
-                or entity.__class__.__name__ == "Sequence"
+                entity.__class__.__name__ == 'Shot'
+                or entity.__class__.__name__ == 'Sequence'
             ):
                 parentShotSequence = entity
                 break
@@ -66,7 +66,7 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def _loadOrCreateMasterSequence(
-        sequenceName="TmpSequence", sequenceTarget="/Game"
+        sequenceName='TmpSequence', sequenceTarget='/Game'
     ):
         masterSequence = Connector._getLoadedLevelSequence()
         if masterSequence is None:
@@ -88,7 +88,7 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def setTimeLine():
-        """Set time line to FS , FE environment values"""
+        '''Set time line to FS , FE environment values'''
 
         if not Connector._getTaskParentShotSequence(
             Connector.getCurrentEntity()
@@ -97,9 +97,9 @@ class Connector(maincon.Connector):
 
         # For prototype let's assume it has no shot parent
         # This is for the current frame range
-        viewFrameStart = os.getenv("FS")
-        viewFrameEnd = os.getenv("FE")
-        viewFrameRate = os.getenv("FPS")
+        viewFrameStart = os.getenv('FS')
+        viewFrameEnd = os.getenv('FE')
+        viewFrameRate = os.getenv('FPS')
 
         masterSequence = Connector._loadOrCreateMasterSequence()
         if masterSequence:
@@ -109,29 +109,30 @@ class Connector(maincon.Connector):
             ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         else:
             logging.info(
-                "No LevelSequence were found in the current map"
-                + " therefore time range cannot be set."
+                'No LevelSequence were found in the current map'
+                + ' therefore time range cannot be set.'
             )
 
     @staticmethod
     def getAssets():
-        """Return the available assets in UE project, return the *componentId(s)*"""
+        '''Return the available assets in UE project, return the *componentId(s)*'''
         componentIds = []
         assets = (
             ue.AssetRegistryHelpers()
             .get_asset_registry()
-            .get_assets_by_path("/Game", True)
+            .get_assets_by_path('/Game', True)
         )
         for asset_data in assets:
-            # unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs to
+            # be in memory....
             asset = asset_data.get_asset()
             if (
                 asset
-                and asset_data.get_tag_value("ftrack.IntegrationVersion")
+                and asset_data.get_tag_value('ftrack.IntegrationVersion')
                 != None
             ):
                 assetComponentId = asset_data.get_tag_value(
-                    "ftrack.AssetComponentId"
+                    'ftrack.AssetComponentId'
                 )
                 nameInScene = str(asset.get_name())
                 componentIds.append((assetComponentId, nameInScene))
@@ -140,12 +141,12 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def getFileName():
-        """Return the *current scene* name"""
+        '''Return the *current scene* name'''
         pass
 
     @staticmethod
     def getMainWindow():
-        """Return the *main window* instance"""
+        '''Return the *main window* instance'''
         pass
 
     @staticmethod
@@ -172,7 +173,7 @@ class Connector(maincon.Connector):
             from pymel.core.uitypes import pysideWrapInstance
         except ImportError:
             ptr = long(ptr)  # Ensure type
-            if "shiboken" in globals():
+            if 'shiboken' in globals():
                 import shiboken
 
                 if base is None:
@@ -193,33 +194,34 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def importAsset(iAObj):
-        """Import the asset provided by *iAObj*"""
+        '''Import the asset provided by *iAObj*'''
 
         assetHandler = FTAssetHandlerInstance.instance()
         importAsset = assetHandler.getAssetClass(iAObj.assetType)
         if importAsset:
             result = importAsset.importAsset(iAObj)
             Connector.selectObjects(selection=result)
-            return "imported assets " + str(result)
+            return 'imported assets ' + str(result)
         else:
-            return "assetType not supported"
+            return 'assetType not supported'
 
     @staticmethod
-    def selectObject(applicationObject=""):
-        """Select the *applicationObject*"""
+    def selectObject(applicationObject=''):
+        '''Select the *applicationObject*'''
         Connector.selectObjects(selection=[applicationObject])
 
     @staticmethod
     def selectObjects(selection):
-        """Select the given *selection*"""
+        '''Select the given *selection*'''
         selectionPathNames = []
         assets = (
             ue.AssetRegistryHelpers()
             .get_asset_registry()
-            .get_assets_by_path("/Game", True)
+            .get_assets_by_path('/Game', True)
         )
         for asset_data in assets:
-            # unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs
+            # to be in memory....
             asset = asset_data.get_asset()
             if str(asset.get_name()) in selection:
                 selectionPathNames.append(asset.get_path_name())
@@ -227,40 +229,42 @@ class Connector(maincon.Connector):
         ue.EditorAssetLibrary.sync_browser_to_objects(selectionPathNames)
 
     @staticmethod
-    def removeObject(applicationObject=""):
-        """Remove the *applicationObject* from the scene"""
+    def removeObject(applicationObject=''):
+        '''Remove the *applicationObject* from the scene'''
         # first get our asset of interest
         componentId = None
         versionId = None
         assets = (
             ue.AssetRegistryHelpers()
             .get_asset_registry()
-            .get_assets_by_path("/Game", True)
+            .get_assets_by_path('/Game', True)
         )
         for asset_data in assets:
-            # unfortunately to access the tag values objects needs to be in memory....
+            # unfortunately to access the tag values objects needs to
+            # be in memory....
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
                 # a single asset can be represented by multiple assets in the
                 componentId = ue.EditorAssetLibrary.get_metadata_tag(
-                    asset, "ftrack.AssetComponentId"
+                    asset, 'ftrack.AssetComponentId'
                 )
                 versionId = ue.EditorAssetLibrary.get_metadata_tag(
-                    asset, "ftrack.AssetVersionId"
+                    asset, 'ftrack.AssetVersionId'
                 )
                 break
 
         if componentId != None and versionId != None:
             for asset_data in assets:
-                # unfortunately to access the tag values objects needs to be in memory....
+                # unfortunately to access the tag values objects needs to
+                # be in memory....
                 asset = asset_data.get_asset()
                 if (
                     ue.EditorAssetLibrary.get_metadata_tag(
-                        asset, "ftrack.AssetComponentId"
+                        asset, 'ftrack.AssetComponentId'
                     )
                     == componentId
                     and ue.EditorAssetLibrary.get_metadata_tag(
-                        asset, "ftrack.AssetVersionId"
+                        asset, 'ftrack.AssetVersionId'
                     )
                     == versionId
                 ):
@@ -268,23 +272,23 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def getImportedAssetVersion(assetName, assetType, parentTaskId):
-        """Remove the *applicationObject* from the scene"""
+        '''Remove the *applicationObject* from the scene'''
         # first get our asset of interest
         candidateVersion = None
         assets = (
             ue.AssetRegistryHelpers()
             .get_asset_registry()
-            .get_assets_by_path("/Game", True)
+            .get_assets_by_path('/Game', True)
         )
         for asset_data in assets:
             # unfortunately to access the tag values objects needs
             # to be in memory
             asset = asset_data.get_asset()
             assetInstanceName = ue.EditorAssetLibrary.get_metadata_tag(
-                asset, "ftrack.AssetName"
+                asset, 'ftrack.AssetName'
             )
             assetInstanceType = ue.EditorAssetLibrary.get_metadata_tag(
-                asset, "ftrack.AssetType"
+                asset, 'ftrack.AssetType'
             )
             if (
                 assetName == assetInstanceName
@@ -292,10 +296,10 @@ class Connector(maincon.Connector):
             ):
                 currentVersion = ftrack.AssetVersion(
                     ue.EditorAssetLibrary.get_metadata_tag(
-                        asset, "ftrack.AssetVersionId"
+                        asset, 'ftrack.AssetVersionId'
                     )
                 )
-                if currentVersion.get("taskid") == parentTaskId:
+                if currentVersion.get('taskid') == parentTaskId:
                     candidateVersion = currentVersion
                     break
 
@@ -303,7 +307,7 @@ class Connector(maincon.Connector):
 
     @staticmethod
     def changeVersion(applicationObject=None, iAObj=None):
-        """Change version of *iAObj* for the given *applicationObject*"""
+        '''Change version of *iAObj* for the given *applicationObject*'''
 
         assetHandler = FTAssetHandlerInstance.instance()
         changeAsset = assetHandler.getAssetClass(iAObj.assetType)
@@ -311,38 +315,38 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            logging.error("assetType not supported")
+            logging.error('assetType not supported')
             return False
 
     @staticmethod
     def getSelectedObjects():
-        """Return the selected nodes"""
+        '''Return the selected nodes'''
         pass
 
     @staticmethod
     def getSelectedAssets():
-        """Return the selected assets"""
+        '''Return the selected assets'''
         componentIds = []
         selectedAssets = ue.EditorUtilityLibrary.get_selected_assets()
         for asset in selectedAssets:
             assetComponentId = ue.EditorAssetLibrary.get_metadata_tag(
-                asset, "ftrack.AssetComponentId"
+                asset, 'ftrack.AssetComponentId'
             )
             if assetComponentId != None:
                 componentIds.append((assetComponentId, str(asset.get_name())))
         return componentIds
 
     @staticmethod
-    def setNodeColor(applicationObject="", latest=True):
-        """Set the node color"""
+    def setNodeColor(applicationObject='', latest=True):
+        '''Set the node color'''
         pass
 
     @staticmethod
     def publishAsset(iAObj=None):
-        """Publish the asset provided by *iAObj*"""
+        '''Publish the asset provided by *iAObj*'''
         masterSequence = Connector._getLoadedLevelSequence()
         if masterSequence is None:
-            return [], "no sequence available in current map to allow render"
+            return [], 'no sequence available in current map to allow render'
         # ensure that the masterSequence we are operating on is saved
         ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         assetHandler = FTAssetHandlerInstance.instance()
@@ -353,31 +357,31 @@ class Connector(maincon.Connector):
             )
             return publishedComponents, message
         else:
-            return [], "assetType not supported"
+            return [], 'assetType not supported'
 
     @staticmethod
     def getConnectorName():
-        """Return the connector name"""
-        return "unreal"
+        '''Return the connector name'''
+        return 'unreal'
 
     @staticmethod
     def getUniqueSceneName(assetName):
-        """Return a unique scene name for the given *assetName*"""
+        '''Return a unique scene name for the given *assetName*'''
         pass
 
     @staticmethod
     def getReferenceNode(assetLink):
-        """Return the references nodes for the given *assetLink*"""
+        '''Return the references nodes for the given *assetLink*'''
         pass
 
     @staticmethod
     def takeScreenshot():
-        """Take a screenshot and save it in the temp folder"""
+        '''Take a screenshot and save it in the temp folder'''
         pass
 
     @classmethod
     def registerAssets(cls):
-        """Register all the available assets"""
+        '''Register all the available assets'''
         import ftrack_connect_unreal_engine.connector.unrealassets
 
         ftrack_connect_unreal_engine.connector.unrealassets.registerAssetTypes()

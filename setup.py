@@ -13,31 +13,31 @@ from pip._internal import main as pip_main
 
 # Define paths
 
-PLUGIN_NAME = "ftrack-connect-unreal-engine-{0}"
+PLUGIN_NAME = 'ftrack-connect-unreal-engine-{0}'
 
 ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 
-RESOURCE_PATH = os.path.join(ROOT_PATH, "resource")
+RESOURCE_PATH = os.path.join(ROOT_PATH, 'resource')
 
-SOURCE_PATH = os.path.join(ROOT_PATH, "source")
+SOURCE_PATH = os.path.join(ROOT_PATH, 'source')
 
-README_PATH = os.path.join(ROOT_PATH, "README.md")
+README_PATH = os.path.join(ROOT_PATH, 'README.md')
 
-BUILD_PATH = os.path.join(ROOT_PATH, "build")
+BUILD_PATH = os.path.join(ROOT_PATH, 'build')
 
 STAGING_PATH = os.path.join(BUILD_PATH, PLUGIN_NAME)
 
-HOOK_PATH = os.path.join(RESOURCE_PATH, "hook")
+HOOK_PATH = os.path.join(RESOURCE_PATH, 'hook')
 
-UNREAL_ICON_PATH = os.path.join(RESOURCE_PATH, "icon")
-UNREAL_PLUGINS_PATH = os.path.join(RESOURCE_PATH, "plugins")
+UNREAL_ICON_PATH = os.path.join(RESOURCE_PATH, 'icon')
+UNREAL_PLUGINS_PATH = os.path.join(RESOURCE_PATH, 'plugins')
 
 
 with open(
-    os.path.join(SOURCE_PATH, "ftrack_connect_unreal_engine", "_version.py")
+    os.path.join(SOURCE_PATH, 'ftrack_connect_unreal_engine', '_version.py')
 ) as _version_file:
     VERSION = re.match(
-        r".*__version__ = \"(.*?)\"", _version_file.read(), re.DOTALL
+        r'.*__version__ = \'(.*?)\'', _version_file.read(), re.DOTALL
     ).group(1)
 
 
@@ -47,7 +47,7 @@ STAGING_PATH = STAGING_PATH.format(VERSION)
 
 # Custom commands.
 class PyTest(TestCommand):
-    """Pytest command."""
+    '''Pytest command.'''
 
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -55,7 +55,7 @@ class PyTest(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        """Import pytest and run."""
+        '''Import pytest and run.'''
         import pytest
 
         errno = pytest.main(self.test_args)
@@ -63,9 +63,9 @@ class PyTest(TestCommand):
 
 
 class BuildPlugin(Command):
-    """Build plugin."""
+    '''Build plugin.'''
 
-    description = "Download dependencies and build plugin ."
+    description = 'Download dependencies and build plugin .'
 
     user_options = []
 
@@ -76,65 +76,65 @@ class BuildPlugin(Command):
         pass
 
     def run(self):
-        """Run the build step."""
+        '''Run the build step.'''
         # Clean staging path
         shutil.rmtree(STAGING_PATH, ignore_errors=True)
 
         # Copy plugin files
         shutil.copytree(
             UNREAL_PLUGINS_PATH,
-            os.path.join(STAGING_PATH, "resource", "plugins"),
+            os.path.join(STAGING_PATH, 'resource', 'plugins'),
         )
 
         # Copy icon files
         shutil.copytree(
-            UNREAL_ICON_PATH, os.path.join(STAGING_PATH, "resource", "icon")
+            UNREAL_ICON_PATH, os.path.join(STAGING_PATH, 'resource', 'icon')
         )
         # Copy hook files
-        shutil.copytree(HOOK_PATH, os.path.join(STAGING_PATH, "hook"))
+        shutil.copytree(HOOK_PATH, os.path.join(STAGING_PATH, 'hook'))
 
         # Copy readme file
-        shutil.copyfile(README_PATH, os.path.join(STAGING_PATH, "README.md"))
+        shutil.copyfile(README_PATH, os.path.join(STAGING_PATH, 'README.md'))
 
         # Install local dependencies
         pip_main(
             [
-                "install",
-                ".",
-                "--target",
-                os.path.join(STAGING_PATH, "dependencies"),
-                "--process-dependency-links",
+                'install',
+                '.',
+                '--target',
+                os.path.join(STAGING_PATH, 'dependencies'),
+                '--process-dependency-links',
             ]
         )
 
         # Generate plugin zip
         shutil.make_archive(
             os.path.join(BUILD_PATH, PLUGIN_NAME.format(VERSION)),
-            "zip",
+            'zip',
             STAGING_PATH,
         )
 
 
 # Configuration.
 setup(
-    name="ftrack connect unreal engine",
+    name='ftrack connect unreal engine',
     version=VERSION,
-    description="Unreal engine integration with ftrack.",
+    description='Unreal engine integration with ftrack.',
     long_description=open(README_PATH).read(),
-    keywords="",
-    url="https://bitbucket.org/taotang123/ftrack-connect-unreal/",
-    author="ftrack",
-    author_email="support@ftrack.com",
-    license="Apache License (2.0)",
+    keywords='',
+    url='https://bitbucket.org/taotang123/ftrack-connect-unreal/',
+    author='ftrack',
+    author_email='support@ftrack.com',
+    license='Apache License (2.0)',
     packages=find_packages(SOURCE_PATH),
-    package_dir={"": "source"},
-    package_data={"": ["*.ico"]},
+    package_dir={'': 'source'},
+    package_data={'': ['*.ico']},
     setup_requires=[
-        "sphinx >= 1.2.2, < 2",
-        "sphinx_rtd_theme >= 0.1.6, < 2",
-        "lowdown >= 0.1.0, < 1",
+        'sphinx >= 1.2.2, < 2',
+        'sphinx_rtd_theme >= 0.1.6, < 2',
+        'lowdown >= 0.1.0, < 1',
     ],
-    install_requires=["appdirs"],
-    tests_require=["pytest >= 2.3.5, < 3"],
-    cmdclass={"test": PyTest, "build_plugin": BuildPlugin},
+    install_requires=['appdirs'],
+    tests_require=['pytest >= 2.3.5, < 3'],
+    cmdclass={'test': PyTest, 'build_plugin': BuildPlugin},
 )

@@ -27,8 +27,7 @@ class FtrackTasksDialog(QtWidgets.QDialog):
         applyTheme(self, "integration")
         self.setSizePolicy(
             QtWidgets.QSizePolicy(
-                QtWidgets.QSizePolicy.Expanding,
-                QtWidgets.QSizePolicy.Expanding
+                QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
             )
         )
         self.setMinimumWidth(500)

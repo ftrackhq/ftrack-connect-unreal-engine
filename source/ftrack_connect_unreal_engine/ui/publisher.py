@@ -27,7 +27,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, connector=None):
         if not connector:
             raise ValueError(
-                "Please provide a connector object for {0}".format(
+                'Please provide a connector object for {0}'.format(
                     self.__class__.__name__
                 )
             )
@@ -43,7 +43,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                 QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
             )
         )
-        applyTheme(self, "integration")
+        applyTheme(self, 'integration')
 
         self.assetType = None
         self.assetName = None
@@ -71,10 +71,10 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         self.headerWidget = header.Header(getpass.getuser(), self)
         self.scrollLayout.addWidget(self.headerWidget)
 
-        if "FTRACK_TASKID" in os.environ:
-            self.browseMode = "Task"
+        if 'FTRACK_TASKID' in os.environ:
+            self.browseMode = 'Task'
         else:
-            self.browseMode = "Shot"
+            self.browseMode = 'Shot'
 
         self.browseTasksWidget = ContextSelector(
             currentEntity=self.currentEntity, parent=self
@@ -102,7 +102,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         )
         self.scrollLayout.addItem(spacerItem)
 
-        self.setObjectName("ftrackPublishAsset")
+        self.setObjectName('ftrackPublishAsset')
         self.setWindowTitle("ftrackPublishAsset")
         panelComInstance = ftrack_connector.panelcom.PanelComInstance.instance()
         panelComInstance.addSwitchedShotListener(self.reset_context_browser)
@@ -127,38 +127,38 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         self.browseTasksWidget.reset()
 
     def reset_context_browser(self):
-        """Reset task browser to the value stored in the environments"""
-        entity_id = os.getenv("FTRACK_TASKID", os.getenv("FTRACK_SHOTID"))
+        '''Reset task browser to the value stored in the environments'''
+        entity_id = os.getenv('FTRACK_TASKID', os.getenv('FTRACK_SHOTID'))
         entity = ftrack.Task(entity_id)
         self.browseTasksWidget.reset(entity)
         self.currentEntity = entity
 
     def resetOptions(self):
-        """Reset options"""
+        '''Reset options'''
         self.exportOptionsWidget.resetOptions()
         self.exportAssetOptionsWidget.setAssetType(self.assetType)
         self.exportAssetOptionsWidget.setAssetName(self.assetName)
-        self.exportOptionsWidget.setComment("")
+        self.exportOptionsWidget.setComment('')
 
         self.exportAssetOptionsWidget.updateTasks(self.currentEntity)
         self.exportAssetOptionsWidget.updateView(self.currentEntity)
 
     def setAssetType(self, assetType):
-        """Set to the provided *assetType*"""
+        '''Set to the provided *assetType*'''
         self.exportAssetOptionsWidget.setAssetType(assetType)
         self.assetType = assetType
 
     def setAssetName(self, assetName):
-        """Set to the provided *assetName*"""
+        '''Set to the provided *assetName*'''
         self.exportAssetOptionsWidget.setAssetName(assetName)
         self.assetName = assetName
 
     def setComment(self, comment):
-        """Set the provided *comment*"""
+        '''Set the provided *comment*'''
         self.exportOptionsWidget.setComment(comment)
 
     def publishAsset(self):
-        """Publish the asset"""
+        '''Publish the asset'''
         task = self.exportAssetOptionsWidget.getTask()
         taskId = task.getId()
         shot = self.exportAssetOptionsWidget.getShot()
@@ -170,8 +170,8 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         comment = self.exportOptionsWidget.getComment()
         options = self.exportOptionsWidget.getOptions()
 
-        if assetName == "":
-            self.showWarning("Missing assetName", "assetName can not be blank")
+        if assetName == '':
+            self.showWarning('Missing assetName', 'assetName can not be blank')
             return
 
         prePubObj = ftrack_connector.FTAssetObject(
@@ -181,7 +181,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         result, message = self.connector.prePublish(prePubObj)
 
         if not result:
-            self.showWarning("Prepublish failed", message)
+            self.showWarning('Prepublish failed', message)
             return
 
         self.exportOptionsWidget.setProgress(0)
@@ -210,7 +210,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
             oldComponents = oldAssetVersion.getComponents()
             for oldComp in oldComponents:
                 compName = oldComp.getName()
-                if compName == "thumbnail" or compName == "ftrackreview-mp4":
+                if compName == 'thumbnail' or compName == 'ftrackreview-mp4':
                     continue
                 assetVersion.createComponent(
                     name=oldComp.getName(), path=oldComp.getFilesystemPath()
@@ -226,7 +226,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
             self.exportOptionsWidget.setProgress(40)
         except:
             self.exportOptionsWidget.setProgress(100)
-            self.showError("Publish failed. Please check the console.")
+            self.showError('Publish failed. Please check the console.')
             raise
 
         if publishedComponents:
@@ -252,22 +252,22 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         ftTask = ftrack.Task(id=taskId)
         if (
             ftTask
-            and ftTask.get("object_typeid")
-            == "11c137c0-ee7e-4f9c-91c5-8c77cec22b2c"
+            and ftTask.get('object_typeid')
+            == '11c137c0-ee7e-4f9c-91c5-8c77cec22b2c'
         ):
             for taskStatus in ftrack.getTaskStatuses():
                 if taskStatus.getName() == status and taskStatus.get(
-                    "statusid"
-                ) != ftTask.get("statusid"):
+                    'statusid'
+                ) != ftTask.get('statusid'):
                     try:
                         ftTask.setStatus(taskStatus)
                     except Exception as error:
-                        logging.error("{0}".format(error))
+                        logging.error('{0}'.format(error))
 
                     break
 
-        self.headerWidget.setMessage(message, "info")
-        self.exportOptionsWidget.setComment("")
+        self.headerWidget.setMessage(message, 'info')
+        self.exportOptionsWidget.setComment('')
         self.resetOptions()
         self.exportAssetOptionsWidget.emitAssetType(
             self.exportAssetOptionsWidget.ui.ListAssetsComboBox.currentIndex()
@@ -275,24 +275,24 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         self.exportOptionsWidget.setProgress(100)
 
     def keyPressEvent(self, e):
-        """Handle Escape key press"""
+        '''Handle Escape key press'''
         if not e.key() == QtCore.Qt.Key_Escape:
             super(FtrackPublishDialog, self).keyPressEvent(e)
 
     def getShotPath(self, shot):
-        """Return the full path to the shot"""
+        '''Return the full path to the shot'''
         shotparents = shot.getParents()
-        shotpath = ""
+        shotpath = ''
 
         for parent in reversed(shotparents):
-            shotpath += parent.getName() + "."
+            shotpath += parent.getName() + '.'
         shotpath += shot.getName()
         return shotpath
 
     def showWarning(self, subject, message):
-        """Helper method for *showWarning*"""
-        self.headerWidget.setMessage(message, "warning")
+        '''Helper method for *showWarning*'''
+        self.headerWidget.setMessage(message, 'warning')
 
     def showError(self, message):
-        """Helper method for *showError"""
-        self.headerWidget.setMessage(message, "error")
+        '''Helper method for *showError'''
+        self.headerWidget.setMessage(message, 'error')

@@ -142,7 +142,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         ftrack.setup()
 
         self.currentEntity = ftrack.Task(
-            os.getenv("FTRACK_TASKID"), os.getenv("FTRACK_SHOTID")
+            os.getenv('FTRACK_TASKID'), os.getenv('FTRACK_SHOTID')
         )
 
         ftrackContext.external_init()
@@ -153,7 +153,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         if app is None:
             app = QApplication([])
             app.setWindowIcon(
-                QtGui.QIcon(os.path.dirname(__file__) + "/UE4Ftrack.ico")
+                QtGui.QIcon(os.path.dirname(__file__) + '/UE4Ftrack.ico')
             )
 
         def _app_tick(dt):
@@ -173,7 +173,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
         # Install the ftrack logging handlers
         ftrack_connect.config.configure_logging(
-            "ftrack_connect_unreal", level="INFO"
+            'ftrack_connect_unreal', level='INFO'
         )
 
         self.on_connect_initialized()
@@ -200,12 +200,12 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         for command in ftrackContext.commands:
             if command.name == command_name:
                 if command.commandType == "dialog":
-                    logging.info("Executing command" + command.name)
+                    logging.info('Executing command' + command.name)
                     self._open_dialog(command.userData, command.displayName)
                     break
 
     def _open_dialog(self, dialog_class, title):
-        """Open *dialog_class* and create if not already existing."""
+        '''Open *dialog_class* and create if not already existing.'''
         dialog_name = dialog_class
 
         if (
@@ -230,8 +230,8 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
     @unreal.ufunction(override=True)
     def get_capture_arguments(self):
-        str_capture_args = ""
+        str_capture_args = ''
         for capture_arg in ftrackContext.capture_args:
             str_capture_args += capture_arg
-            str_capture_args += " "
+            str_capture_args += ' '
         return str_capture_args
