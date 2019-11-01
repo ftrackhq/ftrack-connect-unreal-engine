@@ -5,13 +5,14 @@
 import os
 import re
 import shutil
-import pip
-
-if not pip.__version__.split('.') >= ['19', '3', '0']:
-    raise ValueError('Pip should be version 19.3.0 or higher')
 
 from setuptools.command.test import test as TestCommand
 from setuptools import setup, find_packages, Command
+from pkg_resources import parse_version
+import pip
+
+if parse_version(pip.__version__) < parse_version('19.3.0'):
+    raise ValueError('Pip should be version 19.3.0 or higher')
 
 from pip._internal import main as pip_main
 
