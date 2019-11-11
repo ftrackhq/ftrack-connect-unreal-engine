@@ -20,6 +20,7 @@ sys.path.append(sources)
 
 import ftrack_connect_unreal_engine
 
+unreal_icon = os.environ['FTRACK_SERVER'] + '/application_icons/unreal_engine.png'
 
 class LaunchApplicationAction(object):
     '''Discover and launch unreal engine.'''
@@ -190,7 +191,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                     applicationIdentifier='Unreal_{version}',
                     label='Unreal Engine',
                     variant='{version}',
-                    icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png',
+                    icon=unreal_icon,
                 )
             )
 
@@ -221,7 +222,7 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                     label='Unreal Engine',
                     variant='{version}',
                     applicationIdentifier='Unreal_{version}',
-                    icon='https://cdn4.iconfinder.com/data/icons/various-icons-2/476/Unreal_Engine.png',
+                    icon=unreal_icon,
                 )
             )
 
