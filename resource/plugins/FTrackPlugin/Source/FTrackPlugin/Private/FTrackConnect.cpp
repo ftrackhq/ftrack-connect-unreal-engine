@@ -3,18 +3,22 @@
 #include "AssetRegistryModule.h"
 #include "IAssetRegistry.h"
 
+#include "AssetToolsModule.h"
+#include "IAssetTools.h"
+
 #include "GameFramework/Actor.h"
 #include "IPythonScriptPlugin.h"
 #include "Misc/CoreDelegates.h"
 #include "Misc/Paths.h"
 #include "Templates/Casts.h"
 #include "UObject/UObjectHash.h"
+#include "EditorDirectories.h"
 
-UFTrackConnect* UFTrackConnect::GetInstance()
+UFTrackConnect *UFTrackConnect::GetInstance()
 {
 	// The Python FTrack Connect instance must come from a Python class derived from UFTrackConnect
 	// In Python, there should be only one derivation, but hot-reloading will create new derived classes, so use the last one
-	TArray<UClass*> FTrackConnectClasses;
+	TArray<UClass *> FTrackConnectClasses;
 	GetDerivedClasses(UFTrackConnect::StaticClass(), FTrackConnectClasses);
 	int32 NumClasses = FTrackConnectClasses.Num();
 	if (NumClasses > 0)
@@ -26,7 +30,7 @@ UFTrackConnect* UFTrackConnect::GetInstance()
 
 static void OnEditorExit()
 {
-	if (UFTrackConnect* Connect = UFTrackConnect::GetInstance())
+	if (UFTrackConnect *Connect = UFTrackConnect::GetInstance())
 	{
 		Connect->Shutdown();
 	}
@@ -37,14 +41,39 @@ void UFTrackConnect::OnConnectInitialized() const
 	IPythonScriptPlugin::Get()->OnPythonShutdown().AddStatic(OnEditorExit);
 }
 
-void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString& tag) const
+void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString &tag) const
 {
 #if WITH_EDITOR
 	FName tagName(*tag);
-	TSet<FName>& GlobalTagsForAssetRegistry = UObject::GetMetaDataTagsForAssetRegistry();
+	TSet<FName> &GlobalTagsForAssetRegistry = UObject::GetMetaDataTagsForAssetRegistry();
 	if (!GlobalTagsForAssetRegistry.Contains(tagName))
 	{
 		GlobalTagsForAssetRegistry.Add(tagName);
 	}
+#endif
+}
+
+void UFTrackConnect::MigratePackages(const FString &package_name, const FString &output_folder) const
+{
+#if WITH_EDITOR
+	// Get a list of package names for input into MigratePackages
+	FName packageName(*package_name);
+
+	TArray<FName> PackageNames;
+	PackageNames.Reserve(1);
+	PackageNames.Add(packageName);
+
+	// get last directory
+	FString lastExport = FEditorDirectories::Get().GetLastDirectory(ELastDirectory::GENERIC_EXPORT);
+
+	// set last directory
+	FEditorDirectories::Get().SetLastDirectory(ELastDirectory::GENERIC_EXPORT, output_folder);
+
+	FAssetToolsModule &AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
+	AssetToolsModule.Get().MigratePackages(PackageNames);
+
+	// restore last directory
+	FEditorDirectories::Get().SetLastDirectory(ELastDirectory::GENERIC_EXPORT, lastExport);
+
 #endif
 }

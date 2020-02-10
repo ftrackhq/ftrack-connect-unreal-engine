@@ -41,7 +41,7 @@ class UFTrackConnect : public UObject
 public:
 	// Get the instance of the Python ftrack connect
 	UFUNCTION(BlueprintCallable, Category = Python)
-	static UFTrackConnect* GetInstance();
+	static UFTrackConnect *GetInstance();
 
 	// Callback for when the Python ftrack connect has finished initialization
 	UFUNCTION(BlueprintCallable, Category = Python)
@@ -57,14 +57,17 @@ public:
 
 	// Execute a command in Python
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
-	void ExecuteCommand(const FString& CommandName) const;
+	void ExecuteCommand(const FString &CommandName) const;
 
 	// Add global tag in asset registry, this is used to facilitate query of assets
 	UFUNCTION(BlueprintCallable, Category = Python)
-	void AddGlobalTagInAssetRegistry(const FString& tag) const;
+	void AddGlobalTagInAssetRegistry(const FString &tag) const;
 
 	// Returns capture arguments specific to ftrack
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	FString GetCaptureArguments() const;
 
+	// MISSING BLUEPRINT FUNCTIONALITY
+	UFUNCTION(BlueprintCallable, Category = "Editor Scripting|Asset Tools")
+	void MigratePackages(const FString &package_name, const FString &output_filepath) const;
 };
