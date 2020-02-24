@@ -12,7 +12,8 @@
 #include "Misc/Paths.h"
 #include "Templates/Casts.h"
 #include "UObject/UObjectHash.h"
-#include "EditorDirectories.h"
+
+DEFINE_LOG_CATEGORY(FTrackLog);
 
 UFTrackConnect *UFTrackConnect::GetInstance()
 {
@@ -53,27 +54,61 @@ void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString &tag) const
 #endif
 }
 
+void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	TArray<FName> Dependencies;
+	
+	// Recursively fetch the dependencies of the given package
+	AssetRegistryModule.Get().GetDependencies(PackageName, Dependencies);
+
+	for (auto DependsIt = Dependencies.CreateConstIterator(); DependsIt; ++DependsIt)
+	{
+		if (!AllDependencies.Contains(*DependsIt))
+		{
+			// Skip engine and script content
+			const bool bIsEnginePackage = (*DependsIt).ToString().StartsWith(TEXT("/Engine"));
+			const bool bIsScriptPackage = (*DependsIt).ToString().StartsWith(TEXT("/Script"));
+			if (!bIsEnginePackage && !bIsScriptPackage)
+			{
+				AllDependencies.Add(*DependsIt);
+				RecursiveGetDependencies(*DependsIt, AllDependencies);
+			}
+		}
+	}
+}
+
 void UFTrackConnect::MigratePackages(const FString &package_name, const FString &output_folder) const
 {
 #if WITH_EDITOR
-	// Get a list of package names for input into MigratePackages
-	FName packageName(*package_name);
+	FName umapPackageName(*package_name);
 
-	TArray<FName> PackageNames;
-	PackageNames.Reserve(1);
-	PackageNames.Add(packageName);
+	TSet<FName> AllPackageNamesToMove;
+	AllPackageNamesToMove.Add(umapPackageName);
 
-	// get last directory
-	FString lastExport = FEditorDirectories::Get().GetLastDirectory(ELastDirectory::GENERIC_EXPORT);
+	// Fetch the dependencies of the umap level file:
+	RecursiveGetDependencies(umapPackageName, AllPackageNamesToMove);
 
-	// set last directory
-	FEditorDirectories::Get().SetLastDirectory(ELastDirectory::GENERIC_EXPORT, output_folder);
-
-	FAssetToolsModule &AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
-	AssetToolsModule.Get().MigratePackages(PackageNames);
-
-	// restore last directory
-	FEditorDirectories::Get().SetLastDirectory(ELastDirectory::GENERIC_EXPORT, lastExport);
-
+	if (AllPackageNamesToMove.Num() != 0)
+	{
+		// Copy all specified assets and their dependencies to the destination folder
+		for (auto PackageIt = AllPackageNamesToMove.CreateConstIterator(); PackageIt; ++PackageIt)
+		{
+			const FString& PackageName = (*PackageIt).ToString();
+			FString SrcFilename;
+			if (FPackageName::DoesPackageExist(PackageName, nullptr, &SrcFilename))
+			{
+				FString DestFilename = output_folder + PackageName;
+				if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) == COPY_OK)
+				{
+					UE_LOG(FTrackLog, Display, TEXT("Successfully migrated %s to %s"), *PackageName, *DestFilename);
+				}
+				else
+				{
+					UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate %s to %s"), *PackageName, *DestFilename);
+				}
+			}
+		}
+	}
 #endif
 }

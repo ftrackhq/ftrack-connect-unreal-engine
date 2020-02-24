@@ -6,6 +6,8 @@
 
 #include "FTrackConnect.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(FTrackLog, Log, All);
+
 USTRUCT(Blueprintable)
 struct FFTrackMenuItem
 {
@@ -37,6 +39,8 @@ UCLASS(Blueprintable)
 class UFTrackConnect : public UObject
 {
 	GENERATED_BODY()
+
+	void RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const;
 
 public:
 	// Get the instance of the Python ftrack connect
