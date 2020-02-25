@@ -73,5 +73,5 @@ public:
 
 	// MISSING BLUEPRINT FUNCTIONALITY
 	UFUNCTION(BlueprintCallable, Category = "Editor Scripting|Asset Tools")
-	void MigratePackages(const FString &package_name, const FString &output_filepath) const;
+	void MigratePackages(const FString &MapName, const FString &OutputFolder) const;
 };

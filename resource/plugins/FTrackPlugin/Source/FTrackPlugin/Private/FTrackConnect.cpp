@@ -79,26 +79,25 @@ void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FNa
 	}
 }
 
-void UFTrackConnect::MigratePackages(const FString &package_name, const FString &output_folder) const
+void UFTrackConnect::MigratePackages(const FString &MapName, const FString &OutputFolder) const
 {
 #if WITH_EDITOR
-	FName UMapPackageName(*package_name);
+	FName UMapPackageName(*MapName);
 
-	TSet<FName> AllPackageNamesToMove;
-	AllPackageNamesToMove.Add(UMapPackageName);
+	TSet<FName> AllPackagesToMove;
+	AllPackagesToMove.Add(UMapPackageName);
 
 	// Fetch the dependencies of the umap level file:
-	RecursiveGetDependencies(UMapPackageName, AllPackageNamesToMove);
+	RecursiveGetDependencies(UMapPackageName, AllPackagesToMove);
 
 	// Copy all specified assets and their dependencies to the destination folder
-	for (auto PackageIt = AllPackageNamesToMove.CreateConstIterator(); PackageIt; ++PackageIt)
+	for (auto PackageIt = AllPackagesToMove.CreateConstIterator(); PackageIt; ++PackageIt)
 	{
 		const FString& PackageName = (*PackageIt).ToString();
 		FString SrcFilename;
 		if (FPackageName::DoesPackageExist(PackageName, nullptr, &SrcFilename))
 		{
-			FString DestFilename = output_folder + PackageName;
-
+			FString DestFilename = OutputFolder + PackageName;
 			if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) == COPY_OK)
 			{
 				UE_LOG(FTrackLog, Display, TEXT("Successfully migrated %s to %s"), *PackageName, *DestFilename);
