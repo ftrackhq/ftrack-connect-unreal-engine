@@ -12,6 +12,7 @@
 #include "Misc/Paths.h"
 #include "Templates/Casts.h"
 #include "UObject/UObjectHash.h"
+#include "HAL/FileManager.h"
 
 DEFINE_LOG_CATEGORY(FTrackLog);
 
@@ -81,32 +82,30 @@ void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FNa
 void UFTrackConnect::MigratePackages(const FString &package_name, const FString &output_folder) const
 {
 #if WITH_EDITOR
-	FName umapPackageName(*package_name);
+	FName UMapPackageName(*package_name);
 
 	TSet<FName> AllPackageNamesToMove;
-	AllPackageNamesToMove.Add(umapPackageName);
+	AllPackageNamesToMove.Add(UMapPackageName);
 
 	// Fetch the dependencies of the umap level file:
-	RecursiveGetDependencies(umapPackageName, AllPackageNamesToMove);
+	RecursiveGetDependencies(UMapPackageName, AllPackageNamesToMove);
 
-	if (AllPackageNamesToMove.Num() != 0)
+	// Copy all specified assets and their dependencies to the destination folder
+	for (auto PackageIt = AllPackageNamesToMove.CreateConstIterator(); PackageIt; ++PackageIt)
 	{
-		// Copy all specified assets and their dependencies to the destination folder
-		for (auto PackageIt = AllPackageNamesToMove.CreateConstIterator(); PackageIt; ++PackageIt)
+		const FString& PackageName = (*PackageIt).ToString();
+		FString SrcFilename;
+		if (FPackageName::DoesPackageExist(PackageName, nullptr, &SrcFilename))
 		{
-			const FString& PackageName = (*PackageIt).ToString();
-			FString SrcFilename;
-			if (FPackageName::DoesPackageExist(PackageName, nullptr, &SrcFilename))
+			FString DestFilename = output_folder + PackageName;
+
+			if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) == COPY_OK)
 			{
-				FString DestFilename = output_folder + PackageName;
-				if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) == COPY_OK)
-				{
-					UE_LOG(FTrackLog, Display, TEXT("Successfully migrated %s to %s"), *PackageName, *DestFilename);
-				}
-				else
-				{
-					UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate %s to %s"), *PackageName, *DestFilename);
-				}
+				UE_LOG(FTrackLog, Display, TEXT("Successfully migrated %s to %s"), *PackageName, *DestFilename);
+			}
+			else
+			{
+				UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate %s to %s"), *PackageName, *DestFilename);
 			}
 		}
 	}
