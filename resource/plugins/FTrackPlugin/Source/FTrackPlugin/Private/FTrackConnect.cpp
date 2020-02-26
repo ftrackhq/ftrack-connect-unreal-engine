@@ -57,6 +57,7 @@ void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString &tag) const
 
 void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const
 {
+#if WITH_EDITOR
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	TArray<FName> Dependencies;
 	
@@ -77,6 +78,7 @@ void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FNa
 			}
 		}
 	}
+#endif
 }
 
 void UFTrackConnect::MigratePackages(const FString &MapName, const FString &OutputFolder) const
