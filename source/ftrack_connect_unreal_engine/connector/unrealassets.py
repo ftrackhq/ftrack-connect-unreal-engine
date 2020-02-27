@@ -199,17 +199,9 @@ class GenericAsset(FTAssetType):
         unreal_map_package_path,
         content_name
     ):
-        def __generate_target_file_path(destination_path, content_name):
-            # format package folder name
-            output_filename = (
-                "{}".format(content_name)
-            )
-            output_filepath = os.path.normpath(
-                os.path.join(destination_path, output_filename))
-            return output_filepath
-
-        output_filepath = __generate_target_file_path(
-            destination_path, content_name
+        # format package folder name
+        output_filepath = os.path.normpath(
+            os.path.join(destination_path, content_name)
         )
         if os.path.isdir(output_filepath):
             # Must delete it first,
@@ -229,9 +221,6 @@ class GenericAsset(FTAssetType):
                 unreal_map_package_path, output_filepath)
         )
 
-        # get package name for World Map
-        package_name = unreal_map_package_path
-
         # create (temporary) destination folder
         try:
             if not os.path.exists(output_filepath):
@@ -245,7 +234,7 @@ class GenericAsset(FTAssetType):
             return False, None
 
         # perform migration
-        ue.FTrackConnect.get_instance().migrate_packages(package_name, output_filepath)
+        ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, output_filepath)
 
         # zip up folder
         output_zippath = (

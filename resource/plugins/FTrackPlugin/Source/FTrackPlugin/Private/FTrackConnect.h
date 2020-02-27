@@ -71,7 +71,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	FString GetCaptureArguments() const;
 
-	// MISSING BLUEPRINT FUNCTIONALITY
+	// Migrate the Unreal umap file and its dependencies to the output folder
 	UFUNCTION(BlueprintCallable, Category = "Editor Scripting|Asset Tools")
 	void MigratePackages(const FString &MapName, const FString &OutputFolder) const;
 };
