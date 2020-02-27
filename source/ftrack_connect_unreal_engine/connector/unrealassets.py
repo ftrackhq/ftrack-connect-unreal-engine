@@ -222,6 +222,8 @@ class GenericAsset(FTAssetType):
         )
 
         # create (temporary) destination folder
+        # TODO: Make use of a context manager like tempfile.TemporaryDirectory() to safely create
+        # and cleanup temp folders and files once Unreal is provides support for Python 3.2+
         try:
             if not os.path.exists(output_filepath):
                 os.makedirs(output_filepath)
