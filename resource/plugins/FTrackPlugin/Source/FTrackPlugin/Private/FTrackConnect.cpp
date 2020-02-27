@@ -58,6 +58,8 @@ void UFTrackConnect::AddGlobalTagInAssetRegistry(const FString &tag) const
 void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const
 {
 #if WITH_EDITOR
+	// This function is identical to UAssetToolsImpl::RecursiveGetDependencies in UE4's AssetTools module.
+	// It is being added here for use by the MigratePackages re-implementation provided below.
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::Get().LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
 	TArray<FName> Dependencies;
 	
@@ -84,6 +86,8 @@ void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FNa
 void UFTrackConnect::MigratePackages(const FString &MapName, const FString &OutputFolder) const
 {
 #if WITH_EDITOR
+	// This is a re-implementation of Unreal's AssetTools.MigratePackages() function to remove all blocking UI.
+	// The functionality, however, is the same (utilizing public modules that are exposed to the UE4 C++ API).
 	FName UMapPackageName(*MapName);
 
 	TSet<FName> AllPackagesToMove;

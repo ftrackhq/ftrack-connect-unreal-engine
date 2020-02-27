@@ -40,6 +40,7 @@ class UFTrackConnect : public UObject
 {
 	GENERATED_BODY()
 
+	// Gets the dependencies of the specified package recursively
 	void RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const;
 
 public:
