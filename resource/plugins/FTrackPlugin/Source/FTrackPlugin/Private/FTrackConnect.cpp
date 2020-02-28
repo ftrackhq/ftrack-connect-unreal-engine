@@ -109,13 +109,9 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 			{
 				UE_LOG(FTrackLog, Display, TEXT("The package %s already exists at the destination %s."), *PackageName, *DestFilename);
 			}
-			else if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) == COPY_OK)
+			else if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) != COPY_OK)
 			{
-				UE_LOG(FTrackLog, Display, TEXT("Successfully migrated %s to %s"), *PackageName, *DestFilename);
-			}
-			else
-			{
-				UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate %s to %s"), *PackageName, *DestFilename);
+				UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate package %s"), *PackageName);
 			}
 		}
 	}

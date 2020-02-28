@@ -7,6 +7,7 @@ import sys
 import logging
 import subprocess
 import shutil
+import tempfile
 from zipfile import ZipFile
 
 import ftrack
@@ -203,48 +204,13 @@ class GenericAsset(FTAssetType):
         output_filepath = os.path.normpath(
             os.path.join(destination_path, content_name)
         )
-        if os.path.isdir(output_filepath):
-            # Must delete it first,
-            try:
-                shutil.rmtree(output_filepath)
-            except OSError as e:
-                logging.warning(
-                    "Couldn't delete {}. The package process won't be able to output to that folder.".format(
-                        output_filepath
-                    )
-                )
-                return False, None
-
-        # process migration of current scene
-        logging.info(
-            "package {0} to folder: {1}".format(
-                unreal_map_package_path, output_filepath)
-        )
-
-        # create (temporary) destination folder
-        # TODO: Make use of a context manager like tempfile.TemporaryDirectory() to safely create
-        # and cleanup temp folders and files once Unreal is provides support for Python 3.2+
-        try:
-            if not os.path.exists(output_filepath):
-                os.makedirs(output_filepath)
-        except OSError:
-            logging.warning(
-                "Couldn't create {}. The package won't be able to output to that folder.".format(
-                    output_filepath
-                )
-            )
-            return False, None
-
-        # perform migration
-        ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, output_filepath)
 
         # zip up folder
         output_zippath = (
             "{}.zip".format(output_filepath)
         )
-
         if os.path.isfile(output_zippath):
-            # Must delete it first,
+            # must delete it first,
             try:
                 os.remove(output_zippath)
             except OSError as e:
@@ -255,24 +221,47 @@ class GenericAsset(FTAssetType):
                 )
                 return False, None
 
+        # process migration of current scene
+        logging.info(
+            "package {0} to folder: {1}".format(
+                unreal_map_package_path, output_zippath)
+        )
+
+        # create (temporary) destination folder
+        try:
+            # TODO: Use a context manager like tempfile.TemporaryDirectory() to safely create
+            # and cleanup temp folders and files once Unreal provides support for Python 3.2+
+            tempdir_filepath = tempfile.mkdtemp(dir = destination_path)
+        except OSError:
+            logging.warning(
+                "Couldn't create {}. The package won't be able to output to that folder.".format(
+                    tempdir_filepath
+                )
+            )
+            return False, None
+
+        # perform migration
+        ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
+
         # create a ZipFile object
         with ZipFile(output_zippath, 'w') as zipObj:
-            # Iterate over all the files in directory
-            for folderName, subfolders, filenames in os.walk(output_filepath):
+            # iterate over all the files in directory
+            for folderName, subfolders, filenames in os.walk(tempdir_filepath):
                 for filename in filenames:
-                    # create complete filepath of file in directory
+                    # create complete and relative filepath of file in directory
                     filePath = os.path.join(folderName, filename)
+                    truncated_path = os.path.relpath(filePath, tempdir_filepath)
                     # Add file to zip
-                    zipObj.write(filePath)
+                    zipObj.write(filePath, truncated_path)
 
         # remove temporary folder
-        if os.path.isdir(output_filepath):
+        if os.path.isdir(tempdir_filepath):
             try:
-                shutil.rmtree(output_filepath)
+                shutil.rmtree(tempdir_filepath)
             except OSError as e:
                 logging.warning(
                     "Couldn't delete {}. The package process cannot cleanup temporary package folder.".format(
-                        output_filepath
+                        tempdir_filepath
                     )
                 )
                 return False, None
