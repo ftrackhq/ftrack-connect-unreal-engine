@@ -451,8 +451,9 @@ class GenericAsset(FTAssetType):
                     + '_'
                     + str(object_ad.asset_name),
                 ):
-                    newNameWithPrefix = prefix + \
-                        '_' + str(object_ad.asset_name)
+                    newNameWithPrefix = '{}_{}'.format(
+                        prefix, object_ad.asset_name
+                    )
         return newNameWithPrefix
 
     @staticmethod
@@ -1068,7 +1069,7 @@ class ImgSequenceAsset(GenericAsset):
         # Publish Component: Current Scene
         if publishCurrentScene:
             componentName = "package_asset"
-            package_name = str(iAObj.assetName) + '_package'
+            package_name = "{}_package".format(iAObj.assetName)
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
