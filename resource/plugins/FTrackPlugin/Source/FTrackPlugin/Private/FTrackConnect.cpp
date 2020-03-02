@@ -101,18 +101,33 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 	{
 		const FString& PackageName = (*PackageIt).ToString();
 		FString SrcFilename;
+		
+		// Check that the package exists and retrive the filename on disk
 		if (FPackageName::DoesPackageExist(PackageName, nullptr, &SrcFilename))
 		{
-			FString DestFilename = OutputFolder + PackageName;
+			FString DestFilename = OutputFolder;
+			FPaths::NormalizeFilename(DestFilename);
 
-			if (IFileManager::Get().FileSize(*DestFilename) > 0)
+			if (!DestFilename.EndsWith(TEXT("/")))
 			{
-				UE_LOG(FTrackLog, Display, TEXT("The package %s already exists at the destination %s."), *PackageName, *DestFilename);
+				DestFilename += TEXT("/");
 			}
-			else if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) != COPY_OK)
-			{
-				UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate package %s"), *PackageName);
-			}
+
+			// Construct the destination filepath using the package's existing location
+			// in the project's Content directory
+			FString SubFolder;
+			if (SrcFilename.Split(TEXT("/Content/"), nullptr, &SubFolder))
+			{	
+				DestFilename += *SubFolder;
+				if (IFileManager::Get().FileSize(*DestFilename) > 0)
+				{
+					UE_LOG(FTrackLog, Display, TEXT("The package %s already exists at the destination %s."), *PackageName, *DestFilename);
+				}
+				else if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) != COPY_OK)
+				{
+					UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate package %s"), *SrcFilename);
+				}
+			}	
 		}
 	}
 #endif
