@@ -235,7 +235,7 @@ class GenericAsset(FTAssetType):
         except OSError:
             logging.warning(
                 "Couldn't create {}. The package won't be able to output to that folder.".format(
-                    tempdir_filepath
+                    destination_path
                 )
             )
             return False, None
