@@ -4,6 +4,7 @@
 import os
 import logging
 import getpass
+import unreal as ue
 
 from QtExt import QtWidgets, QtCore, QtGui
 
@@ -172,6 +173,14 @@ class FtrackPublishDialog(QtWidgets.QDialog):
 
         if assetName == '':
             self.showWarning('Missing assetName', 'assetName can not be blank')
+            return
+
+        if ue.EditorLoadingAndSavingUtils.get_dirty_map_packages():
+            self.showWarning('Unsaved Map', 'Map must be saved before publishing')
+            return
+
+        if ue.EditorLoadingAndSavingUtils.get_dirty_content_packages():
+            self.showWarning('Unsaved Content', 'Content packages must be saved before publishing')
             return
 
         prePubObj = ftrack_connector.FTAssetObject(

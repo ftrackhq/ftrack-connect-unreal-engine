@@ -93,7 +93,7 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 	TSet<FName> AllPackagesToMove;
 	AllPackagesToMove.Add(UMapPackageName);
 
-	// Fetch the dependencies of the umap level file:
+	UE_LOG(FTrackLog, Display, TEXT("Fetching dependencies of %s."), *MapName);
 	RecursiveGetDependencies(UMapPackageName, AllPackagesToMove);
 
 	// Copy all specified assets and their dependencies to the destination folder
@@ -125,9 +125,15 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 				}
 				else if (IFileManager::Get().Copy(*DestFilename, *SrcFilename) != COPY_OK)
 				{
-					UE_LOG(FTrackLog, Warning, TEXT("Failed to migrate package %s"), *SrcFilename);
+					UE_LOG(FTrackLog, Warning, TEXT("Failed to copy package %s to %s."), *PackageName, *DestFilename);
 				}
-			}	
+			}
+			else {
+				UE_LOG(FTrackLog, Warning, TEXT("Failed to construct destination path for %s."), *SrcFilename);
+			}
+		}
+		else {
+			UE_LOG(FTrackLog, Warning, TEXT("The package %s does not exist."), *PackageName);
 		}
 	}
 #endif

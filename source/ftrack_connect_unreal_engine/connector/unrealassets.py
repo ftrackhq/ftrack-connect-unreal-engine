@@ -241,6 +241,11 @@ class GenericAsset(FTAssetType):
             return False, None
 
         # perform migration
+        unreal_windows_logs_dir = os.path.join(
+            ue.SystemLibrary.get_project_saved_directory(), "Logs"
+        )
+        logging.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
+        
         ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
 
         # create a ZipFile object
