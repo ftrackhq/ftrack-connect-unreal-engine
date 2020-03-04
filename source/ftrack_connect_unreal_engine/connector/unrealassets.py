@@ -205,6 +205,9 @@ class GenericAsset(FTAssetType):
             os.path.join(destination_path, content_name)
         )
 
+        # use integration-specific logger
+        logger = logging.getLogger("ftrack_connect_unreal")
+
         # zip up folder
         output_zippath = (
             "{}.zip".format(output_filepath)
@@ -214,7 +217,7 @@ class GenericAsset(FTAssetType):
             try:
                 os.remove(output_zippath)
             except OSError as e:
-                logging.warning(
+                logger.warning(
                     "Couldn't delete {}. The package process won't be able to output to that file.".format(
                         output_zippath
                     )
@@ -222,7 +225,7 @@ class GenericAsset(FTAssetType):
                 return False, None
 
         # process migration of current scene
-        logging.info(
+        logger.info(
             "package {0} to folder: {1}".format(
                 unreal_map_package_path, output_zippath)
         )
@@ -233,7 +236,7 @@ class GenericAsset(FTAssetType):
             # and cleanup temp folders and files once Unreal provides support for Python 3.2+
             tempdir_filepath = tempfile.mkdtemp(dir = destination_path)
         except OSError:
-            logging.warning(
+            logger.warning(
                 "Couldn't create {}. The package won't be able to output to that folder.".format(
                     destination_path
                 )
@@ -244,7 +247,7 @@ class GenericAsset(FTAssetType):
         unreal_windows_logs_dir = os.path.join(
             ue.SystemLibrary.get_project_saved_directory(), "Logs"
         )
-        logging.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
+        logger.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
         
         ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
 
@@ -264,7 +267,7 @@ class GenericAsset(FTAssetType):
             try:
                 shutil.rmtree(tempdir_filepath)
             except OSError as e:
-                logging.warning(
+                logger.warning(
                     "Couldn't delete {}. The package process cannot cleanup temporary package folder.".format(
                         tempdir_filepath
                     )

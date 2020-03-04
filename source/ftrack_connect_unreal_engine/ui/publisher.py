@@ -171,16 +171,21 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         comment = self.exportOptionsWidget.getComment()
         options = self.exportOptionsWidget.getOptions()
 
+        # use integration-specific logger
+        logger = logging.getLogger('ftrack_connect_unreal')
+        
         if assetName == '':
             self.showWarning('Missing assetName', 'assetName can not be blank')
             return
 
-        if ue.EditorLoadingAndSavingUtils.get_dirty_map_packages():
-            self.showWarning('Unsaved Map', 'Map must be saved before publishing')
-            return
+        # check that the current map has been saved
+        current_map_package = ue.EditorLevelLibrary.get_editor_world().get_outermost()
 
-        if ue.EditorLoadingAndSavingUtils.get_dirty_content_packages():
-            self.showWarning('Unsaved Content', 'Content packages must be saved before publishing')
+        if current_map_package in ue.EditorLoadingAndSavingUtils.get_dirty_map_packages():
+            logger.warning('Please save the following map to publish: {0}'.format(
+                current_map_package.get_path_name())
+            )
+            self.showWarning('Unsaved Map', 'Map must be saved before publishing')
             return
 
         prePubObj = ftrack_connector.FTAssetObject(
@@ -252,7 +257,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                         assetVersion.createComponent(name=compName, path=path)
                     assetVersion.publish()
                 except Exception as error:
-                    logging.error(str(error))
+                    logger.error(str(error))
             self.exportOptionsWidget.setProgress(90)
         else:
             self.exportOptionsWidget.setProgress(100)
@@ -271,7 +276,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                     try:
                         ftTask.setStatus(taskStatus)
                     except Exception as error:
-                        logging.error('{0}'.format(error))
+                        logger.error('{0}'.format(error))
 
                     break
 
