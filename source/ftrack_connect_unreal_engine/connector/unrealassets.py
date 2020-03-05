@@ -6,6 +6,9 @@ import os
 import sys
 import logging
 import subprocess
+import shutil
+import tempfile
+from zipfile import ZipFile
 
 import ftrack
 import ftrack_api
@@ -191,6 +194,88 @@ class GenericAsset(FTAssetType):
 
         return os.path.isfile(output_filepath), output_filepath
 
+    def _package_current_scene(
+        self,
+        destination_path,
+        unreal_map_package_path,
+        content_name
+    ):
+        # format package folder name
+        output_filepath = os.path.normpath(
+            os.path.join(destination_path, content_name)
+        )
+
+        # use integration-specific logger
+        logger = logging.getLogger("ftrack_connect_unreal")
+
+        # zip up folder
+        output_zippath = (
+            "{}.zip".format(output_filepath)
+        )
+        if os.path.isfile(output_zippath):
+            # must delete it first,
+            try:
+                os.remove(output_zippath)
+            except OSError as e:
+                logger.warning(
+                    "Couldn't delete {}. The package process won't be able to output to that file.".format(
+                        output_zippath
+                    )
+                )
+                return False, None
+
+        # process migration of current scene
+        logger.info(
+            "package {0} to folder: {1}".format(
+                unreal_map_package_path, output_zippath)
+        )
+
+        # create (temporary) destination folder
+        try:
+            # TODO: Use a context manager like tempfile.TemporaryDirectory() to safely create
+            # and cleanup temp folders and files once Unreal provides support for Python 3.2+
+            tempdir_filepath = tempfile.mkdtemp(dir = destination_path)
+        except OSError:
+            logger.warning(
+                "Couldn't create {}. The package won't be able to output to that folder.".format(
+                    destination_path
+                )
+            )
+            return False, None
+
+        # perform migration
+        unreal_windows_logs_dir = os.path.join(
+            ue.SystemLibrary.get_project_saved_directory(), "Logs"
+        )
+        logger.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
+        
+        ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
+
+        # create a ZipFile object
+        with ZipFile(output_zippath, 'w') as zipObj:
+            # iterate over all the files in directory
+            for folderName, subfolders, filenames in os.walk(tempdir_filepath):
+                for filename in filenames:
+                    # create complete and relative filepath of file in directory
+                    filePath = os.path.join(folderName, filename)
+                    truncated_path = os.path.relpath(filePath, tempdir_filepath)
+                    # Add file to zip
+                    zipObj.write(filePath, truncated_path)
+
+        # remove temporary folder
+        if os.path.isdir(tempdir_filepath):
+            try:
+                shutil.rmtree(tempdir_filepath)
+            except OSError as e:
+                logger.warning(
+                    "Couldn't delete {}. The package process cannot cleanup temporary package folder.".format(
+                        tempdir_filepath
+                    )
+                )
+                return False, None
+
+        return os.path.isfile(output_zippath), output_zippath
+
     def publishAsset(self, iAObj, masterSequence):
         '''Publish the asset defined by the provided *iAObj*.'''
         componentName = "reviewable_asset"
@@ -374,7 +459,9 @@ class GenericAsset(FTAssetType):
                     + '_'
                     + str(object_ad.asset_name),
                 ):
-                    newNameWithPrefix = prefix + '_' + str(object_ad.asset_name)
+                    newNameWithPrefix = '{}_{}'.format(
+                        prefix, object_ad.asset_name
+                    )
         return newNameWithPrefix
 
     @staticmethod
@@ -550,7 +637,8 @@ class RigAsset(GenericAsset):
                     task.options.import_materials = iAObj.options[
                         'importMaterial'
                     ]
-                    task.options.set_editor_property('skeleton', asset.skeleton)
+                    task.options.set_editor_property(
+                        'skeleton', asset.skeleton)
                     task.filename = iAObj.filePath
                     task.destination_path = str(asset_data.package_path)
                     task.destination_name = str(asset_data.asset_name)
@@ -710,7 +798,8 @@ class AnimationAsset(GenericAsset):
                     ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME,
                 )
 
-            task.options.set_editor_property('skeleton', skeletonAD.get_asset())
+            task.options.set_editor_property(
+                'skeleton', skeletonAD.get_asset())
             task.filename = fbx_path
             task.destination_path = import_path
 
@@ -937,11 +1026,15 @@ class ImgSequenceAsset(GenericAsset):
             ue.SystemLibrary.get_project_saved_directory(), 'VideoCaptures'
         )
         unreal_map = ue.EditorLevelLibrary.get_editor_world()
+        unreal_map_package_path = unreal_map.get_outermost().get_path_name()
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
         publishReviewable = iAObj.options.get('MakeReviewable')
+        publishCurrentScene = iAObj.options.get('CurrentScene')
 
         publishedComponents = []
+
+        # Publish Component: reviewable
         if publishReviewable:
             componentName = "reviewable_asset"
             movie_name = str(iAObj.assetName) + '_reviewable'
@@ -956,6 +1049,8 @@ class ImgSequenceAsset(GenericAsset):
                 publishedComponents.append(
                     FTComponent(componentname=componentName, path=path)
                 )
+
+        # Publish Component: image_sequence
         imgComponentName = "image_sequence"
 
         rendered, path = self._render(
@@ -979,6 +1074,20 @@ class ImgSequenceAsset(GenericAsset):
             FTComponent(componentname=imgComponentName, path=imgComponentPath)
         )
 
+        # Publish Component: Current Scene
+        if publishCurrentScene:
+            componentName = "package_asset"
+            package_name = "{}_package".format(iAObj.assetName)
+            package_result, package_path = self._package_current_scene(
+                dest_folder,
+                unreal_map_package_path,
+                package_name
+            )
+            if package_result:
+                publishedComponents.append(
+                    FTComponent(componentname=componentName, path=package_path)
+                )
+
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
     @staticmethod
@@ -989,9 +1098,13 @@ class ImgSequenceAsset(GenericAsset):
             <row name="Make Reviewable" accepts="unreal" enabled="True">
                 <option type="checkbox" name="MakeReviewable" value="True"/>
             </row>
+            <row name="Publish Current Scene" accepts="unreal" enabled="True">
+                <option type="checkbox" name="CurrentScene" value="True"/>
+            </row>        
         </tab>
         '''
         return xml
+
 
 
 def registerAssetTypes():
@@ -1000,7 +1113,6 @@ def registerAssetTypes():
     assetHandler.registerAssetType(name="anim", cls=AnimationAsset)
     assetHandler.registerAssetType(name="geo", cls=GeometryAsset)
     assetHandler.registerAssetType(name="img", cls=ImgSequenceAsset)
-
 
 def upperFirst(x):
     return x[0].upper() + x[1:]

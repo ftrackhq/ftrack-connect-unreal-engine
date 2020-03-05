@@ -87,7 +87,7 @@ void FTrackUIManagerImpl::FillToolbar(FToolBarBuilder& ToolbarBuilder)
 {
 	ToolbarBuilder.BeginSection(TEXT("ftrack"));
 	{
-		// Add a drop-down menu (with a label and an icon for the drop-down button) to list the Shotgun actions available
+		// Add a drop-down menu (with a label and an icon for the drop-down button) to list the ftrack actions available
 		ToolbarBuilder.AddComboButton(
 			FUIAction(),
 			FOnGetContent::CreateRaw(this, &FTrackUIManagerImpl::GenerateFtrackToolbarMenu),

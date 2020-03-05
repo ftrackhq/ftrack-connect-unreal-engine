@@ -6,6 +6,8 @@
 
 #include "FTrackConnect.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(FTrackLog, Log, All);
+
 USTRUCT(Blueprintable)
 struct FFTrackMenuItem
 {
@@ -38,10 +40,13 @@ class UFTrackConnect : public UObject
 {
 	GENERATED_BODY()
 
+	// Gets the dependencies of the specified package recursively
+	void RecursiveGetDependencies(const FName& PackageName, TSet<FName>& AllDependencies) const;
+
 public:
 	// Get the instance of the Python ftrack connect
 	UFUNCTION(BlueprintCallable, Category = Python)
-	static UFTrackConnect* GetInstance();
+	static UFTrackConnect *GetInstance();
 
 	// Callback for when the Python ftrack connect has finished initialization
 	UFUNCTION(BlueprintCallable, Category = Python)
@@ -57,14 +62,17 @@ public:
 
 	// Execute a command in Python
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
-	void ExecuteCommand(const FString& CommandName) const;
+	void ExecuteCommand(const FString &CommandName) const;
 
 	// Add global tag in asset registry, this is used to facilitate query of assets
 	UFUNCTION(BlueprintCallable, Category = Python)
-	void AddGlobalTagInAssetRegistry(const FString& tag) const;
+	void AddGlobalTagInAssetRegistry(const FString &tag) const;
 
 	// Returns capture arguments specific to ftrack
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	FString GetCaptureArguments() const;
 
+	// Migrate the Unreal umap file and its dependencies to the output folder
+	UFUNCTION(BlueprintCallable, Category = "Editor Scripting|Asset Tools")
+	void MigratePackages(const FString &MapName, const FString &OutputFolder) const;
 };
