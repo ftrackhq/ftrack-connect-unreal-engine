@@ -1044,37 +1044,40 @@ class ImgSequenceAsset(GenericAsset):
             # be moved from one Content directory to another. 
             content_dir = ue.SystemLibrary.get_project_content_directory()
 
-            for filepath in package_asset.namelist():
+            for asset in package_asset.namelist():
                 # override existing assets if specified by user
-                abs_path = os.path.normpath(
-                    os.path.join(content_dir, filepath)
+                asset_path = os.path.normpath(
+                    os.path.join(content_dir, asset)
                 )
 
-                if override_existing or not os.path.isfile(abs_path):
-                    importedAssetNames.append(filepath)
+                if override_existing or not os.path.isfile(asset_path):
+                    importedAssetNames.append(asset)
                 
                     # check if asset is a umap file
-                    (_, src_name) = os.path.split(filepath)
+                    (_, src_name) = os.path.split(asset_path)
                     (_, src_extension) = os.path.splitext(src_name)
                     if src_extension.lower() == ".umap":
-                        map_package_path = abs_path
+                        map_package_path = asset_path
             
+            import_count = len(importedAssetNames)
             # extract contents of the package_asset
-            if importedAssetNames.count() > 0:
+            if import_count > 0:
                 try:
                     # Note: ZipFile.extractall overwrites existing files by default
                     package_asset.extractall(path = content_dir, members = importedAssetNames)
-                except Exception as e:
-                    logger.warning("Unable to extract packaged assets into the project's Content directory")
+                except Exception as error:
+                    logger.error(error)
                     return []
 
-                # load the extracted map
+                # load the extracted map, if one was imported
                 if map_package_path:
                     logger.info("Loading the map imported from package: {0}".format(map_package_path))
                     try:
                         ue.EditorLoadingAndSavingUtils.load_map(map_package_path)
-                    except Exception as e:
-                        logger.warning("Unable to load the map {0}".format(map_package_path))
+                    except Exception as error:
+                        logger.error(error)
+
+            logging.info("Number of assets imported: {0}".format(import_count))
 
         return importedAssetNames
 
