@@ -301,12 +301,15 @@ class GenericAsset(FTAssetType):
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
     def _validate_ftrack_asset(self, iAObj=None, required_extension='.fbx'):
+        # use integration-specific logger
+        logger = logging.getLogger("ftrack_connect_unreal")
+        
         # Validate the file
         if not os.path.exists(iAObj.filePath):
             error_string = 'ftrack cannot import file "{}" because it does not exist'.format(
                 iAObj.filePath
             )
-            logging.error(error_string)
+            logger.error(error_string)
             return False
 
         # Only fbx files are supported
@@ -316,7 +319,7 @@ class GenericAsset(FTAssetType):
             error_string = 'ftrack in UE4 does not support importing files with extension "{0}" please use {1}'.format(
                 src_extension, required_extension
             )
-            logging.error(error_string)
+            logger.error(error_string)
 
             return False
 
@@ -1011,7 +1014,6 @@ class GeometryAsset(GenericAsset):
             </row>
         </tab>
         '''
-
         return xml
 
 
@@ -1027,29 +1029,52 @@ class ImgSequenceAsset(GenericAsset):
 
         # unzip package asset
         zip_path = iAObj.filePath
-        content_dir = ue.SystemLibrary.get_project_content_directory()
+        override_existing = iAObj.options['OverrideExisting']
         importedAssetNames = []
-        map_path = None
-        with ZipFile(zip_path, 'r') as package_zip:
-            for filepath in package_zip.namelist():
-                logging.info("checking {0}".format(filepath))
-                (_, src_filename) = os.path.split(filepath)
-                (_, src_extension) = os.path.splitext(src_filename)
-                importedAssetNames.append(src_filename)
-                if src_extension.lower() == ".umap":
-                    logging.info("umap found! - RAJAT GOSWAMI")
-                    map_path = filepath
-                    break
-            package_zip.extractall(content_dir)
 
-        if map_path:
-            import_path = os.path.normpath(
-                os.path.join(content_dir, map_path)
-            )
-            logging.info("Loading the map: {0}".format(import_path))
-            ue.EditorLoadingAndSavingUtils.load_map(import_path)
-        else:
-            logging.warning("Unable to find map asset: {0}".format(map_path))
+        # use integration-specific logger
+        logger = logging.getLogger("ftrack_connect_unreal")
+        logger.info("Importing pacakge asset: {0}".format(zip_path))
+
+        with ZipFile(zip_path, 'r') as package_asset:
+            map_package_path = None
+
+            # In Unreal, asset paths are relative to the Content directory.
+            # In order to migrate assets correctly between projects, they must
+            # be moved from one Content directory to another. 
+            content_dir = ue.SystemLibrary.get_project_content_directory()
+
+            for filepath in package_asset.namelist():
+                # override existing assets if specified by user
+                abs_path = os.path.normpath(
+                    os.path.join(content_dir, filepath)
+                )
+
+                if override_existing or not os.path.isfile(abs_path):
+                    importedAssetNames.append(filepath)
+                
+                    # check if asset is a umap file
+                    (_, src_name) = os.path.split(filepath)
+                    (_, src_extension) = os.path.splitext(src_name)
+                    if src_extension.lower() == ".umap":
+                        map_package_path = abs_path
+            
+            # extract contents of the package_asset
+            if importedAssetNames.count() > 0:
+                try:
+                    # Note: ZipFile.extractall overwrites existing files by default
+                    package_asset.extractall(path = content_dir, members = importedAssetNames)
+                except Exception as e:
+                    logger.warning("Unable to extract packaged assets into the project's Content directory")
+                    return []
+
+                # load the extracted map
+                if map_package_path:
+                    logger.info("Loading the map imported from package: {0}".format(map_package_path))
+                    try:
+                        ue.EditorLoadingAndSavingUtils.load_map(map_package_path)
+                    except Exception as e:
+                        logger.warning("Unable to load the map {0}".format(map_package_path))
 
         return importedAssetNames
 
@@ -1138,7 +1163,17 @@ class ImgSequenceAsset(GenericAsset):
         '''
         return xml
 
-
+    @staticmethod
+    def importOptions():
+        '''Return import options for the component'''
+        xml = '''
+        <tab name="Options">
+            <row name="Override Existing Assets" accepts="unreal">                
+                <option type="checkbox" name="OverrideExisting" value="True"/>
+            </row>
+        </tab>
+        '''
+        return xml
 
 def registerAssetTypes():
     assetHandler = FTAssetHandlerInstance.instance()
