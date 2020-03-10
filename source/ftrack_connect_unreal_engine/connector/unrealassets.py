@@ -40,7 +40,6 @@ class GenericAsset(FTAssetType):
         task.options.import_mesh = iAObj.options['ImportMesh']
         task.options.import_materials = iAObj.options['ImportMaterial']
         task.options.import_animations = False
-        task.options.import_animations = False
 
         fbx_path = iAObj.filePath
         import_path = '/Game/' + iAObj.options['ImportFolder']
@@ -226,7 +225,7 @@ class GenericAsset(FTAssetType):
 
         # process migration of current scene
         logger.info(
-            "package {0} to folder: {1}".format(
+            "Migrate package {0} to folder: {1}".format(
                 unreal_map_package_path, output_zippath)
         )
 
@@ -301,7 +300,7 @@ class GenericAsset(FTAssetType):
 
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
-    def _validate_ftrack_asset(self, iAObj=None):
+    def _validate_ftrack_asset(self, iAObj=None, required_extension='.fbx'):
         # Validate the file
         if not os.path.exists(iAObj.filePath):
             error_string = 'ftrack cannot import file "{}" because it does not exist'.format(
@@ -313,9 +312,9 @@ class GenericAsset(FTAssetType):
         # Only fbx files are supported
         (_, src_filename) = os.path.split(iAObj.filePath)
         (_, src_extension) = os.path.splitext(src_filename)
-        if src_extension.lower() != '.fbx':
-            error_string = 'ftrack in UE4 does not support importing files with extension "{}" please use .fbx'.format(
-                src_extension
+        if src_extension.lower() != required_extension:
+            error_string = 'ftrack in UE4 does not support importing files with extension "{0}" please use {1}'.format(
+                src_extension, required_extension
             )
             logging.error(error_string)
 
@@ -1019,6 +1018,40 @@ class GeometryAsset(GenericAsset):
 class ImgSequenceAsset(GenericAsset):
     def __init__(self):
         super(ImgSequenceAsset, self).__init__()
+
+    def importAsset(self, iAObj=None):
+        '''Import asset defined in *iAObj*'''
+
+        if not self._validate_ftrack_asset(iAObj, '.zip'):
+            return []
+
+        # unzip package asset
+        zip_path = iAObj.filePath
+        content_dir = ue.SystemLibrary.get_project_content_directory()
+        importedAssetNames = []
+        map_path = None
+        with ZipFile(zip_path, 'r') as package_zip:
+            for filepath in package_zip.namelist():
+                logging.info("checking {0}".format(filepath))
+                (_, src_filename) = os.path.split(filepath)
+                (_, src_extension) = os.path.splitext(src_filename)
+                importedAssetNames.append(src_filename)
+                if src_extension.lower() == ".umap":
+                    logging.info("umap found! - RAJAT GOSWAMI")
+                    map_path = filepath
+                    break
+            package_zip.extractall(content_dir)
+
+        if map_path:
+            import_path = os.path.normpath(
+                os.path.join(content_dir, map_path)
+            )
+            logging.info("Loading the map: {0}".format(import_path))
+            ue.EditorLoadingAndSavingUtils.load_map(import_path)
+        else:
+            logging.warning("Unable to find map asset: {0}".format(map_path))
+
+        return importedAssetNames
 
     def publishAsset(self, iAObj, masterSequence):
         '''Publish the asset defined by the provided *iAObj*.'''
