@@ -28,6 +28,7 @@ class GenericAsset(FTAssetType):
         super(GenericAsset, self).__init__()
         self.importAssetBool = False
         self.referenceAssetBool = False
+        self._standard_structure = ftrack_api.structure.standard.StandardStructure()
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
@@ -285,7 +286,10 @@ class GenericAsset(FTAssetType):
         unreal_map = ue.EditorLevelLibrary.get_editor_world()
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
-        movie_name = str(iAObj.assetName) + '_reviewable'
+
+        asset_name = self._standard_structure.sanitise_for_filesystem(iAObj.assetName)
+        movie_name = '{}_reviewable'.format(asset_name)
+
         rendered, path = self._render(
             dest_folder,
             unreal_map_path,
@@ -1090,15 +1094,18 @@ class ImgSequenceAsset(GenericAsset):
         unreal_map_package_path = unreal_map.get_outermost().get_path_name()
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
+
         publishReviewable = iAObj.options.get('MakeReviewable')
         publishCurrentScene = iAObj.options.get('CurrentScene')
+
+        asset_name = self._standard_structure.sanitise_for_filesystem(iAObj.assetName)
 
         publishedComponents = []
 
         # Publish Component: reviewable
         if publishReviewable:
             componentName = "reviewable_asset"
-            movie_name = str(iAObj.assetName) + '_reviewable'
+            movie_name = "{}_reviewable".format(asset_name)
             rendered, path = self._render(
                 dest_folder,
                 unreal_map_path,
@@ -1118,7 +1125,7 @@ class ImgSequenceAsset(GenericAsset):
             dest_folder,
             unreal_map_path,
             unreal_asset_path,
-            str(iAObj.assetName),
+            asset_name,
             masterSequence.get_display_rate().numerator,
             True,
         )
@@ -1138,7 +1145,7 @@ class ImgSequenceAsset(GenericAsset):
         # Publish Component: Current Scene
         if publishCurrentScene:
             componentName = "package_asset"
-            package_name = "{}_package".format(iAObj.assetName)
+            package_name = "{}_package".format(asset_name)
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
