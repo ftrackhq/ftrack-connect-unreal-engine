@@ -28,6 +28,7 @@ class GenericAsset(FTAssetType):
         super(GenericAsset, self).__init__()
         self.importAssetBool = False
         self.referenceAssetBool = False
+        self._standard_structure = ftrack_api.structure.standard.StandardStructure()
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
@@ -286,9 +287,8 @@ class GenericAsset(FTAssetType):
         unreal_map_path = unreal_map.get_path_name()
         unreal_asset_path = masterSequence.get_path_name()
 
-        standard_structure = ftrack_api.structure.standard.StandardStructure()
-        asset_name = standard_structure.sanitise_for_filesystem(iAObj.assetName)
-        movie_name = asset_name + '_reviewable'
+        asset_name = self._standard_structure.sanitise_for_filesystem(iAObj.assetName)
+        movie_name = '{}_reviewable'.format(asset_name)
 
         rendered, path = self._render(
             dest_folder,
@@ -1098,8 +1098,7 @@ class ImgSequenceAsset(GenericAsset):
         publishReviewable = iAObj.options.get('MakeReviewable')
         publishCurrentScene = iAObj.options.get('CurrentScene')
 
-        standard_structure = ftrack_api.structure.standard.StandardStructure()
-        asset_name = standard_structure.sanitise_for_filesystem(iAObj.assetName)
+        asset_name = self._standard_structure.sanitise_for_filesystem(iAObj.assetName)
 
         publishedComponents = []
 
