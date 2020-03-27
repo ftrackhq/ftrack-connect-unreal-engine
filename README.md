@@ -5,8 +5,15 @@ This is an ftrack-connect-unreal integration with Unreal Engine using a UE4 C++ 
 Supported Platforms
 -------------------
 * Currently supported on Windows 10.
-* Is being developed against  Unreal Engine 4.22.
-* Compatible with ftrack-connect-package 0.7.2 - 1.1.0
+* Is being developed against and supprot for now is limited to Unreal Engine 4.22 (requires a c++ project)
+* Compatible with ftrack-connect-package 1.1.0 - 1.1.2
+
+
+building the integration
+------------------------
+
+* clone the repository
+* run : python setup.py build_plugin 
 
 
 Installation
