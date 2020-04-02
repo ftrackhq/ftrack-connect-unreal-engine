@@ -83,12 +83,13 @@ void UFTrackConnect::RecursiveGetDependencies(const FName& PackageName, TSet<FNa
 #endif
 }
 
-void UFTrackConnect::MigratePackages(const FString &MapName, const FString &OutputFolder) const
+TArray<FString> UFTrackConnect::MigratePackages(const FString &MapName, const FString &OutputFolder) const
 {
 #if WITH_EDITOR
 	// This is a re-implementation of Unreal's AssetTools.MigratePackages() function to remove all blocking UI.
 	// The functionality, however, is the same (utilizing public modules that are exposed to the UE4 C++ API).
 	FName UMapPackageName(*MapName);
+	TArray<FString> SuccessfullyCopiedPackages;
 
 	TSet<FName> AllPackagesToMove;
 	AllPackagesToMove.Add(UMapPackageName);
@@ -127,6 +128,9 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 				{
 					UE_LOG(FTrackLog, Warning, TEXT("Failed to copy package %s to %s."), *PackageName, *DestFilename);
 				}
+				else {
+					SuccessfullyCopiedPackages.Add(PackageName);
+				}
 			}
 			else 
 			{
@@ -138,5 +142,6 @@ void UFTrackConnect::MigratePackages(const FString &MapName, const FString &Outp
 			UE_LOG(FTrackLog, Warning, TEXT("The package %s does not exist."), *PackageName);
 		}
 	}
+	return SuccessfullyCopiedPackages;
 #endif
 }
