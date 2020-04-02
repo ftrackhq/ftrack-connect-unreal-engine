@@ -355,9 +355,9 @@ class GenericAsset(FTAssetType):
         # Only fbx and alembic files are supported
         (_, src_filename) = os.path.split(iAObj.filePath)
         (_, src_extension) = os.path.splitext(src_filename)
-        if src_extension.lower() != self.supported_extension:
+        if src_extension.lower() not in self.supported_extension:
             error_string = 'ftrack in UE4 does not support importing files with extension "{0}" please use {1}'.format(
-                src_extension, self.supported_extension
+                src_extension, ', '.join(self.supported_extension)
             )
             logger.error(error_string)
 
