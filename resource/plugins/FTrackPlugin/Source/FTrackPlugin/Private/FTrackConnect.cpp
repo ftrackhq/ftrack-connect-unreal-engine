@@ -128,7 +128,8 @@ TArray<FString> UFTrackConnect::MigratePackages(const FString &MapName, const FS
 				{
 					UE_LOG(FTrackLog, Warning, TEXT("Failed to copy package %s to %s."), *PackageName, *DestFilename);
 				}
-				else {
+				else 
+				{
 					SuccessfullyCopiedPackages.Add(PackageName);
 				}
 			}
