@@ -14,6 +14,7 @@ import ftrack
 import ftrack_api
 import unreal as ue
 import unrealcon
+from ftrack_connect_unreal_engine._version import __version__
 from ftrack_connect.connector import (
     FTAssetHandlerInstance,
     FTAssetType,
@@ -464,7 +465,7 @@ class GenericAsset(FTAssetType):
                 linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId
             )
             ue.EditorAssetLibrary.set_metadata_tag(
-                linked_obj, "ftrack.IntegrationVersion", "0.0.1"
+                linked_obj, "ftrack.IntegrationVersion", __version__
             )  # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
