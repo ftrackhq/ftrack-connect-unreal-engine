@@ -759,10 +759,12 @@ class AnimationAsset(GenericAsset):
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
-            task.options = ue.FbxImportUI()
-            task.options.import_materials = False
-            task.options.import_animations = False
+            task.options = ue.AbcImportSettings()
+            task.options.import_materials = True
+            task.options.import_animations = True
             task.options.override_full_name = True
+            task.options.mesh_type_to_import =ue.AlembicImportType.GEOMETRY_CACHE
+
 
         task.replace_existing = True
         task.automated = True
@@ -973,6 +975,7 @@ class GeometryAsset(GenericAsset):
             task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
+            task.options.mesh_type_to_import = ue.AlembicImportType.STATIC_MESH
 
         task.replace_existing = True
         task.automated = True
