@@ -27,10 +27,10 @@ from QtExt.QtGui import QMessageBox
 
 
 class GenericAsset(FTAssetType):
-    supported_extension = ['.fbx', '.abc']
 
     def __init__(self):
         super(GenericAsset, self).__init__()
+        self.supported_extension = ['.fbx', '.abc']
         self.importAssetBool = False
         self.referenceAssetBool = False
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
@@ -244,7 +244,7 @@ class GenericAsset(FTAssetType):
         )
 
         # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
+        logger = logging.getLogger("ftrack_connect_unreal_engine")
 
         # zip up folder
         output_zippath = (
@@ -344,7 +344,7 @@ class GenericAsset(FTAssetType):
 
     def _validate_ftrack_asset(self, iAObj=None):
         # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
+        logger = logging.getLogger("ftrack_connect_unreal_engine")
         
         # Validate the file
         if not os.path.exists(iAObj.filePath):
@@ -1093,7 +1093,7 @@ class ImgSequenceAsset(GenericAsset):
         importedAssetNames = []
 
         # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
+        logger = logging.getLogger("ftrack_connect_unreal_engine")
         logger.info("Importing pacakge asset: {0}".format(zip_path))
 
         with ZipFile(zip_path, 'r') as package_asset:
