@@ -2,7 +2,8 @@
 # :Copyright 2019 ftrack. All Rights Reserved.
 import logging
 
-logger = logging.getLogger('ftrack_connect_unreal_engine')
+logger = logging.getLogger('ftrack_connect_unreal')
+
 try:
     import ftrack_connect_unreal_engine.bootstrap
 except ImportError as error:

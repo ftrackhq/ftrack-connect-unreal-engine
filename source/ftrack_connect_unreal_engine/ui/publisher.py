@@ -172,7 +172,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         options = self.exportOptionsWidget.getOptions()
 
         # use integration-specific logger
-        logger = logging.getLogger('ftrack_connect_unreal_engine')
+        logger = logging.getLogger('ftrack_connect_unreal')
         
         if assetName == '':
             self.showWarning('Missing assetName', 'assetName can not be blank')

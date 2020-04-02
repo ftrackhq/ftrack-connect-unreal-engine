@@ -19,11 +19,6 @@ from ftrack_connect_unreal_engine.ui.publisher import FtrackPublishDialog
 from QtExt import QtGui
 from QtExt.QtGui import QApplication
 
-# Install the ftrack logging handlers
-ftrack_connect.config.configure_logging(
-    'ftrack_connect_unreal_engine', level='INFO'
-)
-
 
 class Command(object):
     """
@@ -175,6 +170,11 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
         for tag in ftrackContext.tags:
             self.add_global_tag_in_asset_registry(tag)
+
+        # Install the ftrack logging handlers
+        ftrack_connect.config.configure_logging(
+            'ftrack_connect_unreal', level='INFO'
+        )
 
         self.on_connect_initialized()
 
