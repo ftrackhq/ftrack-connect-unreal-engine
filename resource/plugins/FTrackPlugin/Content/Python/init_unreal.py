@@ -9,5 +9,6 @@ except ImportError as error:
     logger.error(
         'ftrack connect Unreal plugin is not well initialized '
         'or you did not start Unreal from ftrack connect.'
-        'Error {}'.format(error)
+        'Error {}'.format(error),
+        exc_info=True
     )
