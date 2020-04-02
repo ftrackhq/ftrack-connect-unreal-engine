@@ -14,7 +14,9 @@ import ftrack
 import ftrack_api
 import unreal as ue
 import unrealcon
+
 from ftrack_connect_unreal_engine._version import __version__
+
 from ftrack_connect.connector import (
     FTAssetHandlerInstance,
     FTAssetType,
@@ -34,7 +36,7 @@ class GenericAsset(FTAssetType):
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
 
     def _get_asset_import_task(self, iAObj):
-        extension = os.path.splitext(iAObj.filePath)
+        extension = os.path.splitext(iAObj.filePath)[-1]
         if extension == '.fbx':
             task = ue.AssetImportTask()
             task.options = ue.FbxImportUI()
@@ -47,7 +49,7 @@ class GenericAsset(FTAssetType):
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
-            task.options = ue.FbxImportUI()
+            task.options = ue.AbcImportSettings()
             task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
@@ -63,7 +65,7 @@ class GenericAsset(FTAssetType):
         if not self._validate_ftrack_asset(iAObj):
             return []
 
-        extension = os.path.splitext(iAObj.filePath)
+        extension = os.path.splitext(iAObj.filePath)[-1]
 
         if extension == '.fbx':
             task = ue.AssetImportTask()
@@ -507,7 +509,7 @@ class RigAsset(GenericAsset):
         super(RigAsset, self).__init__()
 
     def _get_asset_import_task(self, iAObj):
-        extension = os.path.splitext(iAObj.filePath)
+        extension = os.path.splitext(iAObj.filePath)[-1]
         if extension == '.fbx':
             task = ue.AssetImportTask()
             task.options = ue.FbxImportUI()
@@ -733,7 +735,7 @@ class AnimationAsset(GenericAsset):
         super(AnimationAsset, self).__init__()
 
     def _get_asset_import_task(self, iAObj):
-        extension = os.path.splitext(iAObj.filePath)
+        extension = os.path.splitext(iAObj.filePath)[-1]
         if extension == '.fbx':
 
             task = ue.AssetImportTask()
@@ -947,7 +949,8 @@ class GeometryAsset(GenericAsset):
         super(GeometryAsset, self).__init__()
 
     def _get_asset_import_task(self, iAObj):
-        extension = os.path.splitext(iAObj.filePath)
+        extension = os.path.splitext(iAObj.filePath)[-1]
+
         if extension == '.fbx':
             task = ue.AssetImportTask()
             task.options = ue.FbxImportUI()
