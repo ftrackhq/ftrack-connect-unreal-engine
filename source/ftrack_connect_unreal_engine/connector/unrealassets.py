@@ -30,7 +30,7 @@ class GenericAsset(FTAssetType):
 
     def __init__(self):
         super(GenericAsset, self).__init__()
-        self.supported_extension = ['.fbx', '.abc']
+        self.supported_extension = ['.fbx', '.abc', '.zip']
         self.importAssetBool = False
         self.referenceAssetBool = False
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
@@ -535,7 +535,7 @@ class RigAsset(GenericAsset):
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
-            task.options = ue.FbxImportUI()
+            task.options = ue.AbcImportSettings()
             task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
@@ -971,7 +971,7 @@ class GeometryAsset(GenericAsset):
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
-            task.options = ue.FbxImportUI()
+            task.options = ue.AbcImportSettings()
             task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
