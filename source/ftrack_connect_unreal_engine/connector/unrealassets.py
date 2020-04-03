@@ -50,7 +50,6 @@ class GenericAsset(FTAssetType):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
 
