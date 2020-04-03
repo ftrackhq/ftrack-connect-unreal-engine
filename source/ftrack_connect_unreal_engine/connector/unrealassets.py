@@ -753,7 +753,7 @@ class AnimationAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.mesh_type_to_import =ue.AlembicImportType.GEOMETRY_CACHE
+            task.options.import_type =ue.AlembicImportType.GEOMETRY_CACHE
 
 
         task.replace_existing = True
