@@ -51,6 +51,7 @@ class GenericAsset(FTAssetType):
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
 
+
         task.replace_existing = True
         task.automated = True
         task.save = True
@@ -359,8 +360,7 @@ class GenericAsset(FTAssetType):
                 src_extension, ', '.join(self.supported_extension)
             )
             logger.error(error_string)
-
-            return False
+            raise Exception('Format {} is not supported'.format(src_extension))
 
         return True
 
@@ -535,6 +535,7 @@ class RigAsset(GenericAsset):
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
             task.options.import_type = ue.AlembicImportType.SKELETAL
+
 
         task.replace_existing = True
         task.automated = True
