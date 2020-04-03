@@ -531,7 +531,6 @@ class RigAsset(GenericAsset):
             )
             task.options.import_materials = iAObj.options['importMaterial']
 
-
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
