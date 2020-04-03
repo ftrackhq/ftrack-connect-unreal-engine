@@ -535,6 +535,7 @@ class RigAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
+            task.options.import_type = ue.AlembicImportType.SKELETAL
 
         task.replace_existing = True
         task.automated = True
