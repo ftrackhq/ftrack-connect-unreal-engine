@@ -50,7 +50,6 @@ class GenericAsset(FTAssetType):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_animations = False
             task.options.override_full_name = True
 
         task.replace_existing = True
@@ -537,7 +536,6 @@ class RigAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_animations = False
             task.options.override_full_name = True
 
         task.replace_existing = True
@@ -757,7 +755,6 @@ class AnimationAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_animations = True
             task.options.override_full_name = True
             task.options.mesh_type_to_import =ue.AlembicImportType.GEOMETRY_CACHE
 
@@ -969,7 +966,6 @@ class GeometryAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_animations = False
             task.options.override_full_name = True
             task.options.mesh_type_to_import = ue.AlembicImportType.STATIC_MESH
 
