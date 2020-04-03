@@ -531,11 +531,12 @@ class RigAsset(GenericAsset):
             task.options.skeletal_mesh_import_data.set_editor_property(
                 'import_meshes_in_bone_hierarchy', True
             )
+            task.options.import_materials = iAObj.options['importMaterial']
+
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
 
@@ -619,7 +620,6 @@ class RigAsset(GenericAsset):
                 task.options.set_editor_property(
                     'skeleton', skeletonAD.get_asset()
                 )
-            task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(
@@ -673,9 +673,7 @@ class RigAsset(GenericAsset):
                     task.options.create_physics_asset = iAObj.options[
                         'CreatePhysicsAsset'
                     ]
-                    task.options.import_materials = iAObj.options[
-                        'importMaterial'
-                    ]
+
                     task.options.set_editor_property(
                         'skeleton', asset.skeleton)
                     task.filename = iAObj.filePath
@@ -759,7 +757,6 @@ class AnimationAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_materials = True
             task.options.import_animations = True
             task.options.override_full_name = True
             task.options.mesh_type_to_import =ue.AlembicImportType.GEOMETRY_CACHE
@@ -967,11 +964,11 @@ class GeometryAsset(GenericAsset):
             task.options.static_mesh_import_data.set_editor_property(
                 'combine_meshes', True
             )
+            task.options.import_materials = iAObj.options['importMaterial']
 
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_materials = False
             task.options.import_animations = False
             task.options.override_full_name = True
             task.options.mesh_type_to_import = ue.AlembicImportType.STATIC_MESH
@@ -1036,7 +1033,6 @@ class GeometryAsset(GenericAsset):
             task = self._get_asset_import_task(iAObj)
             task.filename = fbx_path
             task.destination_path = import_path
-            task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_mesh = ue.EditorAssetLibrary.load_asset(
