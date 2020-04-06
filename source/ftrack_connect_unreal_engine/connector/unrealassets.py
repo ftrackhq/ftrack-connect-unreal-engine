@@ -198,10 +198,12 @@ class GenericAsset(FTAssetType):
         self,
         destination_path,
         unreal_map_package_path,
-        content_name,
         iAObj
     ):
         # format package folder name
+        asset_name = self._standard_structure.sanitise_for_filesystem(iAObj.assetName)
+        content_name = "{}_package".format(asset_name)
+
         output_filepath = os.path.normpath(
             os.path.join(destination_path, content_name)
         )
@@ -1161,11 +1163,9 @@ class ImgSequenceAsset(GenericAsset):
         # Publish Component: Current Scene
         if publishCurrentScene:
             componentName = "package_asset"
-            package_name = "{}_package".format(asset_name)
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
-                package_name,
                 iAObj
             )
             if package_result:
