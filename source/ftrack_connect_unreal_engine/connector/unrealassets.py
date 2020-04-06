@@ -198,7 +198,8 @@ class GenericAsset(FTAssetType):
         self,
         destination_path,
         unreal_map_package_path,
-        content_name
+        content_name,
+        iAObj
     ):
         # format package folder name
         output_filepath = os.path.normpath(
@@ -249,7 +250,22 @@ class GenericAsset(FTAssetType):
         )
         logger.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
         
-        ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
+        migrated_packages = ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
+
+        # track the assets being published
+        dependenciesVersion = []
+        for package_name in migrated_packages:
+            asset_data = ue.AssetRegistryHelpers().get_asset_registry().get_assets_by_package_name(package_name)
+            
+            for data in asset_data:                 
+                asset = data.get_asset()
+                dependencyAssetId = ue.EditorAssetLibrary.get_metadata_tag(asset, "ftrack.AssetVersionId")
+                if dependencyAssetId:
+                    dependencyVersion = ftrack.AssetVersion(dependencyAssetId)
+                    dependenciesVersion.append(dependencyVersion)
+
+        currentVersion = ftrack.AssetVersion(iAObj.assetVersionId)
+        currentVersion.addUsesVersions(versions=dependenciesVersion)
 
         # create a ZipFile object
         with ZipFile(output_zippath, 'w') as zipObj:
@@ -1149,7 +1165,8 @@ class ImgSequenceAsset(GenericAsset):
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
-                package_name
+                package_name,
+                iAObj
             )
             if package_result:
                 publishedComponents.append(
