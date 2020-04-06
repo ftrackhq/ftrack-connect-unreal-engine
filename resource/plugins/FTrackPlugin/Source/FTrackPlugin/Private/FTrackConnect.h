@@ -72,7 +72,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category = Python)
 	FString GetCaptureArguments() const;
 
-	// Migrate the Unreal umap file and its dependencies to the output folder
+	// Migrate the Unreal umap file and its dependencies to the output folder.
+	// Returns an array of the package names that were successfully copied over.
 	UFUNCTION(BlueprintCallable, Category = "Editor Scripting|Asset Tools")
-	void MigratePackages(const FString &MapName, const FString &OutputFolder) const;
+	TArray<FString> MigratePackages(const FString &MapName, const FString &OutputFolder) const;
 };
