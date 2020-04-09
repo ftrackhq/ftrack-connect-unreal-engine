@@ -14,6 +14,9 @@ import ftrack
 import ftrack_api
 import unreal as ue
 import unrealcon
+
+from ftrack_connect_unreal_engine._version import __version__
+
 from ftrack_connect.connector import (
     FTAssetHandlerInstance,
     FTAssetType,
@@ -24,23 +27,57 @@ from QtExt.QtGui import QMessageBox
 
 
 class GenericAsset(FTAssetType):
+
     def __init__(self):
         super(GenericAsset, self).__init__()
+        self.supported_extension = ['.fbx', '.abc', '.zip']
         self.importAssetBool = False
         self.referenceAssetBool = False
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
 
-    def importAsset(self, iAObj=None):
+    def _get_asset_import_task(self, iAObj):
+        extension = os.path.splitext(iAObj.filePath)[-1]
+        if extension == '.fbx':
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_materials = False
+            task.options.import_animations = False
+            task.options.override_full_name = True
+            task.options.skeletal_mesh_import_data.normal_import_method = (
+                ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+            )
+
+        elif extension == '.abc':
+            task = ue.AssetImportTask()
+            task.options = ue.AbcImportSettings()
+
+
+        task.replace_existing = True
+        task.automated = True
+        task.save = True
+        return task
+
+    def importAsset(self, iAObj):
         '''Import asset defined in *iAObj*'''
 
         if not self._validate_ftrack_asset(iAObj):
             return []
 
-        task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()
-        task.options.import_mesh = iAObj.options['ImportMesh']
-        task.options.import_materials = iAObj.options['ImportMaterial']
-        task.options.import_animations = False
+        extension = os.path.splitext(iAObj.filePath)[-1]
+
+        if extension == '.fbx':
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_mesh = iAObj.options['ImportMesh']
+            task.options.import_materials = iAObj.options['ImportMaterial']
+            task.options.import_animations = False
+
+        elif extension == '.abc':
+            task = ue.AssetImportTask()
+            task.options = ue.AbcImportSettings()
+            task.options.compression_settings.merge_meshes = False
+            if iAObj.options['importMaterial']:
+                task.options.material_settings.set_editor_property('find_materials', True)
 
         fbx_path = iAObj.filePath
         import_path = '/Game/' + iAObj.options['ImportFolder']
@@ -320,7 +357,7 @@ class GenericAsset(FTAssetType):
 
         return publishedComponents, 'Published ' + iAObj.assetType + ' asset'
 
-    def _validate_ftrack_asset(self, iAObj=None, required_extension='.fbx'):
+    def _validate_ftrack_asset(self, iAObj=None):
         # use integration-specific logger
         logger = logging.getLogger("ftrack_connect_unreal")
         
@@ -332,32 +369,17 @@ class GenericAsset(FTAssetType):
             logger.error(error_string)
             return False
 
-        # Only fbx files are supported
+        # Only fbx and alembic files are supported
         (_, src_filename) = os.path.split(iAObj.filePath)
         (_, src_extension) = os.path.splitext(src_filename)
-        if src_extension.lower() != required_extension:
+        if src_extension.lower() not in self.supported_extension:
             error_string = 'ftrack in UE4 does not support importing files with extension "{0}" please use {1}'.format(
-                src_extension, required_extension
+                src_extension, ', '.join(self.supported_extension)
             )
             logger.error(error_string)
-
-            return False
+            raise Exception('Format {} is not supported'.format(src_extension))
 
         return True
-
-    def _get_asset_import_task(self):
-        task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()
-        task.options.import_materials = False
-        task.options.import_animations = False
-        task.options.override_full_name = True
-        task.options.skeletal_mesh_import_data.normal_import_method = (
-            ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
-        )
-        task.replace_existing = True
-        task.automated = True
-        task.save = True
-        return task
 
     def _find_asset_instance(self, rootPath, assetVersionId, assetType):
         ftrack_asset_version = ftrack.AssetVersion(assetVersionId)
@@ -414,7 +436,7 @@ class GenericAsset(FTAssetType):
             # in memory....
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
-                task = self._get_asset_import_task()
+                task = self._get_asset_import_task(iAObj)
                 task.filename = iAObj.filePath
                 task.destination_path = str(asset_data.package_path)
                 task.destination_name = str(asset_data.asset_name)
@@ -459,7 +481,7 @@ class GenericAsset(FTAssetType):
                 linked_obj, "ftrack.AssetVersionId", iAObj.assetVersionId
             )
             ue.EditorAssetLibrary.set_metadata_tag(
-                linked_obj, "ftrack.IntegrationVersion", "0.0.1"
+                linked_obj, "ftrack.IntegrationVersion", __version__
             )  # to be changed at cleanup
             ue.EditorAssetLibrary.save_loaded_asset(linked_obj)
 
@@ -500,28 +522,39 @@ class RigAsset(GenericAsset):
     def __init__(self):
         super(RigAsset, self).__init__()
 
-    def _get_asset_import_task(self):
-        task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()
-        task.options.import_as_skeletal = True
-        task.options.import_materials = False
-        task.options.import_animations = False
-        task.options.create_physics_asset = True
-        task.options.automated_import_should_detect_type = False
-        task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_SKELETAL_MESH
-        task.options.skeletal_mesh_import_data = ue.FbxSkeletalMeshImportData()
-        task.options.skeletal_mesh_import_data.set_editor_property(
-            'use_t0_as_ref_pose', True
-        )
-        task.options.skeletal_mesh_import_data.normal_import_method = (
-            ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
-        )
-        task.options.skeletal_mesh_import_data.set_editor_property(
-            'import_morph_targets', True
-        )
-        task.options.skeletal_mesh_import_data.set_editor_property(
-            'import_meshes_in_bone_hierarchy', True
-        )
+    def _get_asset_import_task(self, iAObj):
+        extension = os.path.splitext(iAObj.filePath)[-1]
+        if extension == '.fbx':
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_as_skeletal = True
+            task.options.import_materials = False
+            task.options.import_animations = False
+            task.options.create_physics_asset = True
+            task.options.automated_import_should_detect_type = False
+            task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_SKELETAL_MESH
+            task.options.skeletal_mesh_import_data = ue.FbxSkeletalMeshImportData()
+            task.options.skeletal_mesh_import_data.set_editor_property(
+                'use_t0_as_ref_pose', True
+            )
+            task.options.skeletal_mesh_import_data.normal_import_method = (
+                ue.FBXNormalImportMethod.FBXNIM_IMPORT_NORMALS_AND_TANGENTS
+            )
+            task.options.skeletal_mesh_import_data.set_editor_property(
+                'import_morph_targets', True
+            )
+            task.options.skeletal_mesh_import_data.set_editor_property(
+                'import_meshes_in_bone_hierarchy', True
+            )
+            task.options.import_materials = iAObj.options['importMaterial']
+
+        elif extension == '.abc':
+            task = ue.AssetImportTask()
+            task.options = ue.AbcImportSettings()
+            task.options.import_type = ue.AlembicImportType.SKELETAL
+            if iAObj.options['importMaterial']:
+                task.options.material_settings.set_editor_property('find_materials', True)
+
         task.replace_existing = True
         task.automated = True
         # task.save = True
@@ -580,7 +613,7 @@ class RigAsset(GenericAsset):
                 )
 
         else:
-            task = self._get_asset_import_task()
+            task = self._get_asset_import_task(iAObj)
             task.filename = fbx_path
             task.destination_path = import_path
             task.options.create_physics_asset = iAObj.options[
@@ -602,7 +635,6 @@ class RigAsset(GenericAsset):
                 task.options.set_editor_property(
                     'skeleton', skeletonAD.get_asset()
                 )
-            task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_skeletal_mesh = ue.EditorAssetLibrary.load_asset(
@@ -652,13 +684,11 @@ class RigAsset(GenericAsset):
                 # be in memory....
                 asset = asset_data.get_asset()
                 if str(asset.get_name()) == applicationObject:
-                    task = self._get_asset_import_task()
+                    task = self._get_asset_import_task(iAObj)
                     task.options.create_physics_asset = iAObj.options[
                         'CreatePhysicsAsset'
                     ]
-                    task.options.import_materials = iAObj.options[
-                        'importMaterial'
-                    ]
+
                     task.options.set_editor_property(
                         'skeleton', asset.skeleton)
                     task.filename = iAObj.filePath
@@ -716,25 +746,35 @@ class AnimationAsset(GenericAsset):
     def __init__(self):
         super(AnimationAsset, self).__init__()
 
-    def _get_asset_import_task(self):
-        task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()
-        task.options.import_as_skeletal = False
-        task.options.import_materials = False
-        task.options.import_mesh = False
-        task.options.import_animations = True
-        task.options.create_physics_asset = False
-        task.options.automated_import_should_detect_type = False
-        task.options.set_editor_property(
-            'mesh_type_to_import', ue.FBXImportType.FBXIT_ANIMATION
-        )
-        task.options.anim_sequence_import_data = ue.FbxAnimSequenceImportData()
-        task.options.anim_sequence_import_data.set_editor_property(
-            'import_bone_tracks', True
-        )
-        task.options.anim_sequence_import_data.set_editor_property(
-            'import_custom_attribute', True
-        )
+    def _get_asset_import_task(self, iAObj):
+        extension = os.path.splitext(iAObj.filePath)[-1]
+        if extension == '.fbx':
+
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_as_skeletal = False
+            task.options.import_materials = False
+            task.options.import_mesh = False
+            task.options.import_animations = True
+            task.options.create_physics_asset = False
+            task.options.automated_import_should_detect_type = False
+            task.options.set_editor_property(
+                'mesh_type_to_import', ue.FBXImportType.FBXIT_ANIMATION
+            )
+            task.options.anim_sequence_import_data = ue.FbxAnimSequenceImportData()
+            task.options.anim_sequence_import_data.set_editor_property(
+                'import_bone_tracks', True
+            )
+            task.options.anim_sequence_import_data.set_editor_property(
+                'import_custom_attribute', True
+            )
+
+        elif extension == '.abc':
+            task = ue.AssetImportTask()
+            task.options = ue.AbcImportSettings()
+            task.options.import_type =ue.AlembicImportType.GEOMETRY_CACHE
+
+
         task.replace_existing = True
         task.automated = True
         return task
@@ -798,7 +838,7 @@ class AnimationAsset(GenericAsset):
                 )
 
         else:
-            task = self._get_asset_import_task()
+            task = self._get_asset_import_task(iAObj)
             if iAObj.options['UseCustomRange']:
                 task.options.anim_sequence_import_data.set_editor_property(
                     'animation_length',
@@ -860,7 +900,7 @@ class AnimationAsset(GenericAsset):
             # in memory....
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
-                task = self._get_asset_import_task()
+                task = self._get_asset_import_task(iAObj)
                 task.options.set_editor_property(
                     'skeleton', asset.get_editor_property('skeleton')
                 )
@@ -919,21 +959,33 @@ class GeometryAsset(GenericAsset):
     def __init__(self):
         super(GeometryAsset, self).__init__()
 
-    def _get_asset_import_task(self):
-        task = ue.AssetImportTask()
-        task.options = ue.FbxImportUI()
-        task.options.import_mesh = True
-        task.options.import_as_skeletal = False
-        task.options.import_materials = False
-        task.options.import_animations = False
-        task.options.create_physics_asset = False
-        task.options.override_full_name = True
-        task.options.automated_import_should_detect_type = False
-        task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_STATIC_MESH
-        task.options.static_mesh_import_data = ue.FbxStaticMeshImportData()
-        task.options.static_mesh_import_data.set_editor_property(
-            'combine_meshes', True
-        )
+    def _get_asset_import_task(self, iAObj):
+        extension = os.path.splitext(iAObj.filePath)[-1]
+
+        if extension == '.fbx':
+            task = ue.AssetImportTask()
+            task.options = ue.FbxImportUI()
+            task.options.import_mesh = True
+            task.options.import_as_skeletal = False
+            task.options.import_materials = False
+            task.options.import_animations = False
+            task.options.create_physics_asset = False
+            task.options.override_full_name = True
+            task.options.automated_import_should_detect_type = False
+            task.options.mesh_type_to_import = ue.FBXImportType.FBXIT_STATIC_MESH
+            task.options.static_mesh_import_data = ue.FbxStaticMeshImportData()
+            task.options.static_mesh_import_data.set_editor_property(
+                'combine_meshes', True
+            )
+            task.options.import_materials = iAObj.options['importMaterial']
+
+        elif extension == '.abc':
+            task = ue.AssetImportTask()
+            task.options = ue.AbcImportSettings()
+            task.options.import_type = ue.AlembicImportType.STATIC_MESH
+            if iAObj.options['importMaterial']:
+                task.options.material_settings.set_editor_property('find_materials', True)
+
         task.replace_existing = True
         task.automated = True
         task.save = True
@@ -991,10 +1043,9 @@ class GeometryAsset(GenericAsset):
                 )
 
         else:
-            task = self._get_asset_import_task()
+            task = self._get_asset_import_task(iAObj)
             task.filename = fbx_path
             task.destination_path = import_path
-            task.options.import_materials = iAObj.options['importMaterial']
             ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
             self.name_import = task.imported_object_paths[0]
             loaded_mesh = ue.EditorAssetLibrary.load_asset(
