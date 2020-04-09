@@ -77,7 +77,7 @@ class GenericAsset(FTAssetType):
             task.options = ue.AbcImportSettings()
             task.options.compression_settings.merge_meshes = False
             if iAObj.options['importMaterial']:
-                task.option.material_settings.set_editor_property('find_materials', True)
+                task.options.material_settings.set_editor_property('find_materials', True)
 
         fbx_path = iAObj.filePath
         import_path = '/Game/' + iAObj.options['ImportFolder']
@@ -553,7 +553,7 @@ class RigAsset(GenericAsset):
             task.options = ue.AbcImportSettings()
             task.options.import_type = ue.AlembicImportType.SKELETAL
             if iAObj.options['importMaterial']:
-                task.option.material_settings.set_editor_property('find_materials', True)
+                task.options.material_settings.set_editor_property('find_materials', True)
 
         task.replace_existing = True
         task.automated = True
@@ -984,7 +984,7 @@ class GeometryAsset(GenericAsset):
             task.options = ue.AbcImportSettings()
             task.options.import_type = ue.AlembicImportType.STATIC_MESH
             if iAObj.options['importMaterial']:
-                task.option.material_settings.set_editor_property('find_materials', True)
+                task.options.material_settings.set_editor_property('find_materials', True)
 
         task.replace_existing = True
         task.automated = True
