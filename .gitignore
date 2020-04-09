@@ -2,3 +2,5 @@
 build/**
 .eggs/**
 .idea/**
+.vs/**
+.vscode/**
