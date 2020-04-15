@@ -126,11 +126,7 @@ class Connector(maincon.Connector):
             # unfortunately to access the tag values objects needs to
             # be in memory....
             asset = asset_data.get_asset()
-            if (
-                asset
-                # and asset_data.get_tag_value('ftrack.IntegrationVersion')
-                # != None
-            ):
+            if asset:
                 assetComponentId = asset_data.get_tag_value(
                     'ftrack.AssetComponentId'
                 )

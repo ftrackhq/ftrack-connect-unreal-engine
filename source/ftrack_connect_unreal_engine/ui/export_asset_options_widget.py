@@ -198,13 +198,6 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
 
         # by default p
         for assetTypeStr in self.assetTypesStr:
-            # if (
-            #     isShot
-            #     and assetTypeStr != 'img'
-            #     or not isShot
-            #     and assetTypeStr == 'img'
-            # ):
-            #     continue
             try:
                 assetType = ftrack.AssetType(assetTypeStr)
             except:
