@@ -17,6 +17,7 @@ import ftrack_connect.ui.theme
 
 import unreal as ue
 
+logger = logging.getLogger(__name__)
 
 class Connector(maincon.Connector):
     def __init__(self):
@@ -108,7 +109,7 @@ class Connector(maincon.Connector):
             masterSequence.set_display_rate(ue.FrameRate(int(viewFrameRate)))
             ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         else:
-            logging.info(
+            logger.info(
                 'No LevelSequence were found in the current map'
                 + ' therefore time range cannot be set.'
             )
@@ -311,7 +312,7 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            logging.error('assetType not supported')
+            logger.error('assetType not supported')
             return False
 
     @staticmethod

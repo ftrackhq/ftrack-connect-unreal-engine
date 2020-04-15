@@ -661,7 +661,7 @@ class RigAsset(GenericAsset):
                 self.addMetaData(iAObj, mesh_skeleton)
                 self.addMetaData(iAObj, mesh_physics_asset)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
             return importedAssetNames
 
@@ -811,7 +811,7 @@ class AnimationAsset(GenericAsset):
                 import_path, iAObj.assetVersionId, iAObj.assetType
             )
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -827,12 +827,12 @@ class AnimationAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info(
+                self.logger.info(
                     'Changed version of existing asset ' + old_node_name
                 )
 
             elif ret == QMessageBox.No:
-                logging.info(
+                self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
 
@@ -877,7 +877,7 @@ class AnimationAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj, loaded_anim)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
         return importedAssetNames
 
@@ -1016,7 +1016,7 @@ class GeometryAsset(GenericAsset):
                 import_path, iAObj.assetVersionId, iAObj.assetType
             )
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -1032,12 +1032,12 @@ class GeometryAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info(
+                self.logger.info(
                     'Changed version of existing asset ' + old_node_name
                 )
 
             elif ret == QMessageBox.No:
-                logging.info(
+                self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
 
@@ -1058,7 +1058,7 @@ class GeometryAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj, loaded_mesh)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
         return importedAssetNames
 
@@ -1146,7 +1146,7 @@ class ImgSequenceAsset(GenericAsset):
                     except Exception as error:
                         self.logger.error(error)
 
-            logging.info("Number of assets imported: {0}".format(import_count))
+            self.logger.info("Number of assets imported: {0}".format(import_count))
 
         return importedAssetNames
 

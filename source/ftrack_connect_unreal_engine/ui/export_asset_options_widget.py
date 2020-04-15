@@ -12,7 +12,7 @@ import ftrack_api
 from ftrack_connect.connector import FTAssetHandlerInstance
 from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 
-log = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 
 class Ui_ExportAssetOptions(object):
@@ -201,7 +201,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             try:
                 assetType = ftrack.AssetType(assetTypeStr)
             except:
-                log.warning('{0} not available in ftrack'.format(assetTypeStr))
+                logger.warning('{0} not available in ftrack'.format(assetTypeStr))
                 continue
             assetTypeItem = QtGui.QStandardItem(assetType.getName())
             assetTypeItem.type = assetType.getShort()
@@ -377,7 +377,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.ui.AssetTaskComboBox.setCurrentIndex(curIndex)
 
         except:
-            logging.warning('Not a task')
+            logger.warning('Not a task')
 
     def getShot(self):
         '''Return the current shot'''
