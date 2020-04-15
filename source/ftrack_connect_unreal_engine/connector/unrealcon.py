@@ -128,8 +128,8 @@ class Connector(maincon.Connector):
             asset = asset_data.get_asset()
             if (
                 asset
-                and asset_data.get_tag_value('ftrack.IntegrationVersion')
-                != None
+                # and asset_data.get_tag_value('ftrack.IntegrationVersion')
+                # != None
             ):
                 assetComponentId = asset_data.get_tag_value(
                     'ftrack.AssetComponentId'

@@ -198,13 +198,13 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
 
         # by default p
         for assetTypeStr in self.assetTypesStr:
-            if (
-                isShot
-                and assetTypeStr != 'img'
-                or not isShot
-                and assetTypeStr == 'img'
-            ):
-                continue
+            # if (
+            #     isShot
+            #     and assetTypeStr != 'img'
+            #     or not isShot
+            #     and assetTypeStr == 'img'
+            # ):
+            #     continue
             try:
                 assetType = ftrack.AssetType(assetTypeStr)
             except:
@@ -259,16 +259,15 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             self.updateAssetTypes(isShot)
             self.ui.ListAssetsViewModel.clear()
 
-            if isShot:
-                item = QtGui.QStandardItem('New')
-                item.id = ''
-                curAssetType = self.currentAssetType
-                if curAssetType:
-                    itemType = QtGui.QStandardItem(curAssetType)
-                else:
-                    itemType = QtGui.QStandardItem('')
-                self.ui.ListAssetsViewModel.setItem(0, 0, item)
-                self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
+            item = QtGui.QStandardItem('New')
+            item.id = ''
+            curAssetType = self.currentAssetType
+            if curAssetType:
+                itemType = QtGui.QStandardItem(curAssetType)
+            else:
+                itemType = QtGui.QStandardItem('')
+            self.ui.ListAssetsViewModel.setItem(0, 0, item)
+            self.ui.ListAssetsViewModel.setItem(0, 1, itemType)
 
             assetsLength = len(assets)
             self.ui.ListAssetNamesComboBox.setEnabled(
@@ -276,7 +275,6 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
             )
 
             blankRows = 0
-            jStart = 1 if isShot else 0
             for i in range(0, len(assets)):
                 assetName = assets[i].getName()
                 if assetName != '':
@@ -286,7 +284,7 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
                         assets[i].getType().getShort()
                     )
 
-                    j = i - blankRows + jStart
+                    j = i - blankRows + 1
                     self.ui.ListAssetsViewModel.setItem(j, 0, item)
                     self.ui.ListAssetsViewModel.setItem(j, 1, itemType)
                 else:
