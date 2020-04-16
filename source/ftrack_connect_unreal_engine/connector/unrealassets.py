@@ -999,7 +999,7 @@ class ImgSequenceAsset(GenericAsset):
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
 
-        if not self._validate_ftrack_asset(iAObj, '.zip'):
+        if not self._validate_ftrack_asset(iAObj):
             return []
 
         # unzip package asset
