@@ -1115,11 +1115,10 @@ class ImgSequenceAsset(GenericAsset):
         # Publish Component: Current Scene
         if publishCurrentScene:
             componentName = "package_asset"
-            package_name = "{}_package".format(asset_name)
+
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
-                package_name,
                 iAObj
             )
             if package_result:
