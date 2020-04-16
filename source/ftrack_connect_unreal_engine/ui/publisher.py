@@ -174,7 +174,6 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         comment = self.exportOptionsWidget.getComment()
         options = self.exportOptionsWidget.getOptions()
 
-        # use integration-specific logger        
         if assetName == '':
             self.showWarning('Missing assetName', 'assetName can not be blank')
             return
