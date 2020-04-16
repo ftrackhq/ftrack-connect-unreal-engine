@@ -30,7 +30,7 @@ class GenericAsset(FTAssetType):
 
     def __init__(self):
         super(GenericAsset, self).__init__()
-        self.supported_extension = ['.fbx', '.abc', '.zip']
+        self.supported_extension = ['.fbx', '.abc']
         self.importAssetBool = False
         self.referenceAssetBool = False
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
@@ -995,6 +995,7 @@ class GeometryAsset(GenericAsset):
 class ImgSequenceAsset(GenericAsset):
     def __init__(self):
         super(ImgSequenceAsset, self).__init__()
+        self.supported_extension = ['.zip']
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
