@@ -127,12 +127,12 @@ class Connector(maincon.Connector):
             # unfortunately to access the tag values objects needs to
             # be in memory....
             asset = asset_data.get_asset()
-            if asset:
-                assetComponentId = asset_data.get_tag_value(
-                    'ftrack.AssetComponentId'
-                )
+            asset_component_id = asset_data.get_tag_value(
+                'ftrack.AssetComponentId'
+            )
+            if asset and asset_component_id:
                 nameInScene = str(asset.get_name())
-                componentIds.append((assetComponentId, nameInScene))
+                componentIds.append((asset_component_id, nameInScene))
 
         return componentIds
 
