@@ -4,3 +4,4 @@ build/**
 .idea/**
 .vs/**
 .vscode/**
+resource/plugins/FtrackPlugin/.vs/**
