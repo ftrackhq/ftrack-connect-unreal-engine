@@ -173,7 +173,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
         # Install the ftrack logging handlers
         ftrack_connect.config.configure_logging(
-            'ftrack_connect_unreal', level='INFO'
+            'ftrack_connect_unreal_engine', level='INFO'
         )
 
         self.on_connect_initialized()

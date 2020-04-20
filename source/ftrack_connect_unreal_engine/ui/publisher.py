@@ -32,6 +32,9 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                     self.__class__.__name__
                 )
             )
+        self.logger = logging.getLogger(
+            __name__ + '.' + self.__class__.__name__
+        )
         self.connector = connector
         if not parent:
             self.parent = self.connector.getMainWindow()
@@ -171,9 +174,6 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         comment = self.exportOptionsWidget.getComment()
         options = self.exportOptionsWidget.getOptions()
 
-        # use integration-specific logger
-        logger = logging.getLogger('ftrack_connect_unreal')
-        
         if assetName == '':
             self.showWarning('Missing assetName', 'assetName can not be blank')
             return
@@ -182,7 +182,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
         current_map_package = ue.EditorLevelLibrary.get_editor_world().get_outermost()
 
         if current_map_package in ue.EditorLoadingAndSavingUtils.get_dirty_map_packages():
-            logger.warning('Please save the following map to publish: {0}'.format(
+            self.logger.warning('Please save the following map to publish: {0}'.format(
                 current_map_package.get_path_name())
             )
             self.showWarning('Unsaved Map', 'Map must be saved before publishing')
@@ -257,7 +257,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                         assetVersion.createComponent(name=compName, path=path)
                     assetVersion.publish()
                 except Exception as error:
-                    logger.error(str(error))
+                    self.logger.error(str(error))
             self.exportOptionsWidget.setProgress(90)
         else:
             self.exportOptionsWidget.setProgress(100)
@@ -276,7 +276,7 @@ class FtrackPublishDialog(QtWidgets.QDialog):
                     try:
                         ftTask.setStatus(taskStatus)
                     except Exception as error:
-                        logger.error('{0}'.format(error))
+                        self.logger.error('{0}'.format(error))
 
                     break
 

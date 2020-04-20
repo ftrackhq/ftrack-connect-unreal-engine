@@ -30,10 +30,13 @@ class GenericAsset(FTAssetType):
 
     def __init__(self):
         super(GenericAsset, self).__init__()
-        self.supported_extension = ['.fbx', '.abc', '.zip']
+        self.supported_extension = ['.fbx', '.abc']
         self.importAssetBool = False
         self.referenceAssetBool = False
         self._standard_structure = ftrack_api.structure.standard.StandardStructure()
+        self.logger = logging.getLogger(
+            __name__ + '.' + self.__class__.__name__
+        )
 
     def _get_asset_import_task(self, iAObj):
         extension = os.path.splitext(iAObj.filePath)[-1]
@@ -105,7 +108,7 @@ class GenericAsset(FTAssetType):
         try:
             self.addMetaData(iAObj, imported_asset)
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         return importedAssetNames
 
@@ -204,7 +207,7 @@ class GenericAsset(FTAssetType):
             try:
                 os.remove(output_filepath)
             except OSError as e:
-                logging.warning(
+                self.logger.warning(
                     "Couldn't delete {}. The Sequencer won't be able to output the movie to that file.".format(
                         output_filepath
                     )
@@ -221,7 +224,7 @@ class GenericAsset(FTAssetType):
             is_image_sequence,
         )
 
-        logging.info(
+        self.logger.info(
             "Sequencer command-line arguments: {}".format(cmdline_args)
         )
 
@@ -261,14 +264,13 @@ class GenericAsset(FTAssetType):
 
     def _validate_ftrack_asset(self, iAObj=None):
         # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
         
         # Validate the file
         if not os.path.exists(iAObj.filePath):
             error_string = 'ftrack cannot import file "{}" because it does not exist'.format(
                 iAObj.filePath
             )
-            logger.error(error_string)
+            self.logger.error(error_string)
             return False
 
         # Only fbx and alembic files are supported
@@ -278,7 +280,7 @@ class GenericAsset(FTAssetType):
             error_string = 'ftrack in UE4 does not support importing files with extension "{0}" please use {1}'.format(
                 src_extension, ', '.join(self.supported_extension)
             )
-            logger.error(error_string)
+            self.logger.error(error_string)
             raise Exception('Format {} is not supported'.format(src_extension))
 
         return True
@@ -489,7 +491,7 @@ class RigAsset(GenericAsset):
                 import_path, iAObj.assetVersionId, iAObj.assetType
             )
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -505,12 +507,12 @@ class RigAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info(
+                self.logger.info(
                     'Changed version of existing asset ' + old_node_name
                 )
 
             elif ret == QMessageBox.No:
-                logging.info(
+                self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
 
@@ -564,7 +566,7 @@ class RigAsset(GenericAsset):
                 self.addMetaData(iAObj, mesh_skeleton)
                 self.addMetaData(iAObj, mesh_physics_asset)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
             return importedAssetNames
 
@@ -714,7 +716,7 @@ class AnimationAsset(GenericAsset):
                 import_path, iAObj.assetVersionId, iAObj.assetType
             )
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -730,12 +732,12 @@ class AnimationAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info(
+                self.logger.info(
                     'Changed version of existing asset ' + old_node_name
                 )
 
             elif ret == QMessageBox.No:
-                logging.info(
+                self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
 
@@ -780,7 +782,7 @@ class AnimationAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj, loaded_anim)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
         return importedAssetNames
 
@@ -919,7 +921,7 @@ class GeometryAsset(GenericAsset):
                 import_path, iAObj.assetVersionId, iAObj.assetType
             )
         except Exception as error:
-            logging.error(error)
+            self.logger.error(error)
 
         importedAssetNames = []
         if ftrack_old_node != None:
@@ -935,12 +937,12 @@ class GeometryAsset(GenericAsset):
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
-                logging.info(
+                self.logger.info(
                     'Changed version of existing asset ' + old_node_name
                 )
 
             elif ret == QMessageBox.No:
-                logging.info(
+                self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
 
@@ -961,7 +963,7 @@ class GeometryAsset(GenericAsset):
             try:
                 self.addMetaData(iAObj, loaded_mesh)
             except Exception as error:
-                logging.error(error)
+                self.logger.error(error)
 
         return importedAssetNames
 
@@ -993,11 +995,12 @@ class GeometryAsset(GenericAsset):
 class ImgSequenceAsset(GenericAsset):
     def __init__(self):
         super(ImgSequenceAsset, self).__init__()
+        self.supported_extension = ['.zip']
 
     def importAsset(self, iAObj=None):
         '''Import asset defined in *iAObj*'''
 
-        if not self._validate_ftrack_asset(iAObj, '.zip'):
+        if not self._validate_ftrack_asset(iAObj):
             return []
 
         # unzip package asset
@@ -1006,8 +1009,7 @@ class ImgSequenceAsset(GenericAsset):
         importedAssetNames = []
 
         # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
-        logger.info("Importing pacakge asset: {0}".format(zip_path))
+        self.logger.info("Importing pacakge asset: {0}".format(zip_path))
 
         with ZipFile(zip_path, 'r') as package_asset:
             map_package_path = None
@@ -1039,18 +1041,18 @@ class ImgSequenceAsset(GenericAsset):
                     # Note: ZipFile.extractall overwrites existing files by default
                     package_asset.extractall(path = content_dir, members = importedAssetNames)
                 except Exception as error:
-                    logger.error(error)
+                    self.logger.error(error)
                     return []
 
                 # load the extracted map, if one was imported
                 if map_package_path:
-                    logger.info("Loading the map imported from package: {0}".format(map_package_path))
+                    self.logger.info("Loading the map imported from package: {0}".format(map_package_path))
                     try:
                         ue.EditorLoadingAndSavingUtils.load_map(map_package_path)
                     except Exception as error:
-                        logger.error(error)
+                        self.logger.error(error)
 
-            logging.info("Number of assets imported: {0}".format(import_count))
+            self.logger.info("Number of assets imported: {0}".format(import_count))
 
         return importedAssetNames
 
@@ -1114,6 +1116,7 @@ class ImgSequenceAsset(GenericAsset):
         # Publish Component: Current Scene
         if publishCurrentScene:
             componentName = "package_asset"
+
             package_result, package_path = self._package_current_scene(
                 dest_folder,
                 unreal_map_package_path,
@@ -1167,9 +1170,6 @@ class ImgSequenceAsset(GenericAsset):
             os.path.join(destination_path, content_name)
         )
 
-        # use integration-specific logger
-        logger = logging.getLogger("ftrack_connect_unreal")
-
         # zip up folder
         output_zippath = (
             "{}.zip".format(output_filepath)
@@ -1179,7 +1179,7 @@ class ImgSequenceAsset(GenericAsset):
             try:
                 os.remove(output_zippath)
             except OSError as e:
-                logger.warning(
+                self.logger.warning(
                     "Couldn't delete {}. The package process won't be able to output to that file.".format(
                         output_zippath
                     )
@@ -1187,7 +1187,7 @@ class ImgSequenceAsset(GenericAsset):
                 return False, None
 
         # process migration of current scene
-        logger.info(
+        self.logger.info(
             "Migrate package {0} to folder: {1}".format(
                 unreal_map_package_path, output_zippath)
         )
@@ -1198,7 +1198,7 @@ class ImgSequenceAsset(GenericAsset):
             # and cleanup temp folders and files once Unreal provides support for Python 3.2+
             tempdir_filepath = tempfile.mkdtemp(dir = destination_path)
         except OSError:
-            logger.warning(
+            self.logger.warning(
                 "Couldn't create {}. The package won't be able to output to that folder.".format(
                     destination_path
                 )
@@ -1209,7 +1209,7 @@ class ImgSequenceAsset(GenericAsset):
         unreal_windows_logs_dir = os.path.join(
             ue.SystemLibrary.get_project_saved_directory(), "Logs"
         )
-        logger.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
+        self.logger.info("Detailed logs of editor ouput during migration found at: {0}".format(unreal_windows_logs_dir))
         
         migrated_packages = ue.FTrackConnect.get_instance().migrate_packages(unreal_map_package_path, tempdir_filepath)
 
@@ -1244,7 +1244,7 @@ class ImgSequenceAsset(GenericAsset):
             try:
                 shutil.rmtree(tempdir_filepath)
             except OSError as e:
-                logger.warning(
+                self.logger.warning(
                     "Couldn't delete {}. The package process cannot cleanup temporary package folder.".format(
                         tempdir_filepath
                     )

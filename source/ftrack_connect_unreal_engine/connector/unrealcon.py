@@ -17,6 +17,7 @@ import ftrack_connect.ui.theme
 
 import unreal as ue
 
+logger = logging.getLogger(__name__)
 
 class Connector(maincon.Connector):
     def __init__(self):
@@ -108,7 +109,7 @@ class Connector(maincon.Connector):
             masterSequence.set_display_rate(ue.FrameRate(int(viewFrameRate)))
             ue.EditorAssetLibrary.save_loaded_asset(masterSequence)
         else:
-            logging.info(
+            logger.info(
                 'No LevelSequence were found in the current map'
                 + ' therefore time range cannot be set.'
             )
@@ -126,16 +127,12 @@ class Connector(maincon.Connector):
             # unfortunately to access the tag values objects needs to
             # be in memory....
             asset = asset_data.get_asset()
-            if (
-                asset
-                and asset_data.get_tag_value('ftrack.IntegrationVersion')
-                != None
-            ):
-                assetComponentId = asset_data.get_tag_value(
-                    'ftrack.AssetComponentId'
-                )
+            asset_component_id = asset_data.get_tag_value(
+                'ftrack.AssetComponentId'
+            )
+            if asset and asset_component_id:
                 nameInScene = str(asset.get_name())
-                componentIds.append((assetComponentId, nameInScene))
+                componentIds.append((asset_component_id, nameInScene))
 
         return componentIds
 
@@ -315,7 +312,7 @@ class Connector(maincon.Connector):
             result = changeAsset.changeVersion(iAObj, applicationObject)
             return result
         else:
-            logging.error('assetType not supported')
+            logger.error('assetType not supported')
             return False
 
     @staticmethod
