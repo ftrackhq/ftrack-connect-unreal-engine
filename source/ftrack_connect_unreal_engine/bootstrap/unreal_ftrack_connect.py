@@ -156,18 +156,6 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
                 QtGui.QIcon(os.path.dirname(__file__) + '/UE4Ftrack.ico')
             )
 
-        def _app_tick(dt):
-            QApplication.processEvents()
-
-        ftrackContext.tickHandle = unreal.register_slate_post_tick_callback(
-            _app_tick
-        )
-
-        def _app_quit(dt):
-            unreal.register_slate_post_tick_callback(ftrackContext.tickHandle)
-
-        QApplication.instance().aboutToQuit.connect(_app_quit)
-
         for tag in ftrackContext.tags:
             self.add_global_tag_in_asset_registry(tag)
 
