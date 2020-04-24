@@ -43,8 +43,5 @@ known limitations
 Due to the limitation of the the current system, publishers for other assets types (eg: geometry, rig etc...)
 will be shown on asset level, but won't be working.
 
-Is Currently possible to publish only image_sequence asset (see documentation for details) on shot level.
+Is Currently possible to publish only image_sequence asset (see documentation for details).
 
-**file formats**
-
-Current integration lacks of support for import of Almebic files.
