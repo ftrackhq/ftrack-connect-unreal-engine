@@ -27,7 +27,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ftrack connect unreal engine'
-copyright = u'2019, ftrack'
+copyright = u'2014-2020, ftrack'
 
 # Version
 with open(
