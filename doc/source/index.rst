@@ -19,6 +19,7 @@ Please ensure you read through before installing it.
    build.rst
    install.rst
    use.rst
+   trubleshooting.rst
    release/index.rst
 
 
