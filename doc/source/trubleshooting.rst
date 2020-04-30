@@ -10,7 +10,7 @@ Trubleshooting
 Known issues and Limitations
 ----------------------------
 
-1) The ftrack plug-in for Unity is currently supported on Windows platforms.
+1) The ftrack plug-in for Unreal Engine is currently supported on Windows platforms.
 
 
 publishing limitaions
