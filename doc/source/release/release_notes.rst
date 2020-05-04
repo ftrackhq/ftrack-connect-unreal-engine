@@ -8,7 +8,8 @@ Release Notes
 *************
 
 
-.. release :: Upcoming
+.. release :: 1.0.0-RC2
+    :date: 2020-05-04
 
     .. change:: Fix
 

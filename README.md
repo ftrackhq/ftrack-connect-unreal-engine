@@ -9,7 +9,7 @@ Documentation
 *************
 
 Installation and setup guides, can be found at
-http://ftrack-connect-unreal-engine.rtd.ftrack.com/en/stable/
+http://ftrack-connect-unreal-engine.rtd.ftrack.com/en/latest/
 
 User documentation can be found at
 https://help.ftrack.com/connect/integrations/ftrack-connect-unreal-engine
