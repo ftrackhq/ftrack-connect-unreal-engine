@@ -12,7 +12,6 @@ import re
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.extlinks',
-    'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'lowdown'

@@ -7,6 +7,13 @@
 Release Notes
 *************
 
+
+.. release :: Upcoming
+
+    .. change:: New
+
+        Add sphinx documentation.
+
 .. release :: 1.0.0-RC1
     :date: 2020-04-24
 
