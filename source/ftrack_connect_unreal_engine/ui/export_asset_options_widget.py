@@ -150,6 +150,7 @@ class Ui_ExportAssetOptions(object):
 class ExportAssetOptionsWidget(QtWidgets.QWidget):
     clickedAssetSignal = QtCore.Signal(str)
     clickedAssetTypeSignal = QtCore.Signal(str)
+    supported_asset = 'img'
 
     def __init__(self, parent, browseMode='Shot'):
         QtWidgets.QWidget.__init__(self, parent)
@@ -195,6 +196,8 @@ class ExportAssetOptionsWidget(QtWidgets.QWidget):
         self.assetTypes.append('')
         self.ui.ListAssetsComboBoxModel.blockSignals(False)
         self.ui.ListAssetsComboBoxModel.appendRow(assetTypeItem)
+
+        self.assetTypesStr = [fmt for fmt in self.assetTypesStr if fmt == self.supported_asset]
 
         # by default p
         for assetTypeStr in self.assetTypesStr:
