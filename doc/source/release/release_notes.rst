@@ -7,8 +7,12 @@
 Release Notes
 *************
 
+.. release:: 1.0.0
+    :date: 2020-09-02
 
-.. release :: 1.0.0-RC2
+        Review doc build and cleanup.
+
+.. release:: 1.0.0-RC2
     :date: 2020-05-04
 
     .. change:: Fix
@@ -22,7 +26,7 @@ Release Notes
 
 
 
-.. release :: 1.0.0-RC1
+.. release:: 1.0.0-RC1
     :date: 2020-04-24
 
     .. change:: New
