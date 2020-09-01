@@ -10,6 +10,8 @@ Release Notes
 .. release:: 1.0.0
     :date: 2020-09-02
 
+    .. change:: New
+
         Review doc build and cleanup.
 
 .. release:: 1.0.0-RC2
