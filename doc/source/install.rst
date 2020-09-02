@@ -25,8 +25,14 @@ You can find more information on how to locate it in the `ftrack help page <http
 
 Setup ftrack unreal project plugin
 ----------------------------------
-(beta and rc release only)
-Copy Binary Plugin FTrackPlugin from 'resource/plugins' to your UE4 project plugins folder(i.e.: MyProject/Plugins).
+
+.. note:: 
+    At the time of the final release the pre compiled plugin will be available in the Unreal Marketplace and can be installed from there.
+
+In case of a new version of Unreal is released copy Plugin FTrackPlugin from 'resource/plugins' to your UE4 project plugins folder(i.e.: MyProject/Plugins).
+and restart the unreal through ftrack-connect. This will trigger the re compilation of the plugin for your current version.
+This process will require to have the `windows development kit <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/>`_ installed.
+
 
 known limitations
 -----------------
