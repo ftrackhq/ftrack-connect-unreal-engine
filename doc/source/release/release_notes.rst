@@ -10,9 +10,9 @@ Release Notes
 .. release:: 1.0.0
     :date: 2020-09-02
 
-    .. change:: New
+    .. change:: Changed
 
-        Review doc build and cleanup.
+        Review documentation for plugin rebuild procedure.
 
 .. release:: 1.0.0-RC2
     :date: 2020-05-04
