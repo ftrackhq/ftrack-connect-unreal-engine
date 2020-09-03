@@ -32,7 +32,7 @@ Setup ftrack unreal project plugin
 In case of a new version of Unreal is released create a c++ project, copy Plugin **FTrackPlugin** from **'resource/plugins'** to your UE4 project plugins folder (i.e.: MyProject/Plugins)
 and restart the unreal through ftrack-connect. This will trigger the re compilation of the plugin for your current version.
 This process will require to have the `windows development kit <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/>`_ installed.
-Once compiled you can save the `compiled package <https://docs.unrealengine.com/en-US/Programming/Plugins/index.html>` through the Unreal plugin window, using the same procedure used to Distribute the plugin to the Epic Marketplace.
+Once compiled you can save the `compiled package <https://docs.unrealengine.com/en-US/Programming/Plugins/index.html>`_ through the Unreal plugin window, using the same procedure used to Distribute the plugin to the Epic Marketplace.
 
 
 known limitations
