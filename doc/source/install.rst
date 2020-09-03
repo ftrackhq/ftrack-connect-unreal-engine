@@ -23,16 +23,22 @@ copy the uncompressed folder in the **%FTRACK_CONNECT_PLUGIN_PATH%**
 
 You can find more information on how to locate it in the `ftrack help page <https://help.ftrack.com/connect/getting-started-with-connect/installing-and-using-connect>`_
 
-Setup ftrack unreal project plugin
+Building ftrack unreal project plugin
 ----------------------------------
 
-.. note:: 
-    At the time of the final release the pre compiled plugin will be available in the Unreal Marketplace and can be installed from there.
+In case of a new version of Unreal Engine is released, and the plugin result incompatible, the plugin can be manually recopiled.
+The plugin sources are stored with the integration itself and available under the **'resource/plugins'** folder.
 
-In case of a new version of Unreal is released create a c++ project, copy Plugin **FTrackPlugin** from **'resource/plugins'** to your UE4 project plugins folder (i.e.: MyProject/Plugins)
-and restart the unreal through ftrack-connect. This will trigger the re compilation of the plugin for your current version.
-This process will require to have the `windows development kit <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/>`_ installed.
-Once compiled you can save the `compiled package <https://docs.unrealengine.com/en-US/Programming/Plugins/index.html>`_ through the Unreal plugin window, using the same procedure used to Distribute the plugin to the Epic Marketplace.
+.. note:: 
+    This process will require to have the `windows development kit <https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/>`_ installed.
+
+1) Start Unreal engine with connect
+2) Create a c++ project
+3) Copy Plugin **FTrackPlugin** from **'resource/plugins'** to your UE4 project plugins folder (i.e.: MyProject/Plugins)
+4) Restart the unreal through ftrack-connect. This will trigger the re compilation of the plugin for your current version.
+
+Once compiled you can save the `compiled package <https://docs.unrealengine.com/en-US/Programming/Plugins/index.html>`_ through the Unreal plugin window, 
+using the same procedure used to Distribute the plugin to the Epic Marketplace.
 
 
 known limitations
