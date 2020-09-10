@@ -10,6 +10,10 @@ Release Notes
 
 .. release:: Upcoming
 
+    .. change:: Fix
+
+        .plugin misses of various fields needed for the marketplace release.
+
     .. change:: New
 
         Add integration usage tracking.
