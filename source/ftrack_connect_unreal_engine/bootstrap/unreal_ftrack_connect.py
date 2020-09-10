@@ -20,6 +20,13 @@ from QtExt import QtGui
 from QtExt.QtGui import QApplication
 
 
+from ftrack_connect_unreal_engine.usage import send_event
+
+send_event(
+    'USED-FTRACK-CONNECT-UNREAL-ENGINE'
+)
+
+
 class Command(object):
     """
         Command object allowing binding between UI and actions
