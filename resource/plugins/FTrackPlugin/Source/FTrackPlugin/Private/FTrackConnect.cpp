@@ -1,3 +1,4 @@
+// Copyright 2019 ftrack. All Rights Reserved.
 #include "FTrackConnect.h"
 
 #include "AssetRegistryModule.h"
