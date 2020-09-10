@@ -8,7 +8,7 @@
     "CreatedBy": "ftrack",
     "CreatedByURL": "https://www.ftrack.com/",
     "DocsURL": "",
-    "MarketplaceURL": "",
+    "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/48fda5279b5d46038d37f8d884a0d889",
     "SupportURL": "",
     "WhitelistPlatforms": [ "Win64", "Mac"]
     "EnabledByDefault": true,
