@@ -10,7 +10,6 @@
     "DocsURL": "https://help.ftrack.com/en/articles/3998053-ftrack-connect-unreal-engine",
     "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/48fda5279b5d46038d37f8d884a0d889",
     "SupportURL": "",
-    "WhitelistPlatforms": [ "Win64", "Mac"],
     "EngineVersion": "4.25.0",
     "EnabledByDefault": true,
     "CanContainContent": true,
@@ -20,7 +19,8 @@
         {
             "Name": "FTrackPlugin",
             "Type": "DeveloperTool",
-            "LoadingPhase": "Default"
+            "LoadingPhase": "Default",
+            "WhitelistPlatforms": [ "Win64", "Mac"]
         }
     ],
     "Plugins": [
