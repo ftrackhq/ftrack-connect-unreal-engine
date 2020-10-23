@@ -20,7 +20,7 @@
             "Name": "FTrackPlugin",
             "Type": "DeveloperTool",
             "LoadingPhase": "Default",
-            "WhitelistPlatforms": [ "Win64", "Mac"]
+            "WhitelistPlatforms": [ "Win64", "Mac", "Linux"]
         }
     ],
     "Plugins": [
