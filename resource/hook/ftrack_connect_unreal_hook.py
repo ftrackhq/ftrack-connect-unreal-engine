@@ -226,6 +226,21 @@ class ApplicationStore(ftrack_connect.application.ApplicationStore):
                 )
             )
 
+        elif 'linux' in sys.platform:
+            prefix = os.getenv('UNITY_ENGINE_INSTALL_PATH', '').split(os.path.sep)
+            prefix.pop(0)  # remove empty space
+            prefix.insert(0, '/')  # add initial slash
+
+            applications.extend(
+                self._searchFilesystem(
+                    expression=prefix + ['UE4Editor$'],
+                    applicationIdentifier='Unreal_{version}',
+                    label='Unreal Engine',
+                    variant='{version}',
+                    icon=unreal_icon
+                )
+            )
+
         self.logger.debug(
             'Discovered applications:\n{0}'.format(pprint.pformat(applications))
         )
