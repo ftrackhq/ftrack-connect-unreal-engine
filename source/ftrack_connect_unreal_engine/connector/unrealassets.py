@@ -676,8 +676,11 @@ class AnimationAsset(GenericAsset):
         elif extension == '.abc':
             task = ue.AssetImportTask()
             task.options = ue.AbcImportSettings()
-            task.options.import_type =ue.AlembicImportType.GEOMETRY_CACHE
+            task.options.import_type = ue.AlembicImportType.GEOMETRY_CACHE
 
+            if iAObj.options['UseCustomRange']:
+                task.options.sampling_settings.frame_start = iAObj.options['AnimRangeMin']
+                task.options.sampling_settings.frame_end = iAObj.options['AnimRangeMax']
 
         task.replace_existing = True
         task.automated = True
@@ -743,29 +746,30 @@ class AnimationAsset(GenericAsset):
 
         else:
             task = self._get_asset_import_task(iAObj)
-            if iAObj.options['UseCustomRange']:
-                task.options.anim_sequence_import_data.set_editor_property(
-                    'animation_length',
-                    ue.FBXAnimationLengthImportType.FBXALIT_SET_RANGE,
-                )
-                rangeInterval = ue.Int32Interval()
-                rangeInterval.set_editor_property(
-                    'min', iAObj.options['AnimRangeMin']
-                )
-                rangeInterval.set_editor_property(
-                    'max', iAObj.options['AnimRangeMax']
-                )
-                task.options.anim_sequence_import_data.set_editor_property(
-                    'frame_import_range', rangeInterval
-                )
-            else:
-                task.options.anim_sequence_import_data.set_editor_property(
-                    'animation_length',
-                    ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME,
-                )
+            if iAObj.filePath.endswith('.fbx'):
+                if iAObj.options['UseCustomRange']:
+                    task.options.anim_sequence_import_data.set_editor_property(
+                        'animation_length',
+                        ue.FBXAnimationLengthImportType.FBXALIT_SET_RANGE,
+                    )
+                    rangeInterval = ue.Int32Interval()
+                    rangeInterval.set_editor_property(
+                        'min', iAObj.options['AnimRangeMin']
+                    )
+                    rangeInterval.set_editor_property(
+                        'max', iAObj.options['AnimRangeMax']
+                    )
+                    task.options.anim_sequence_import_data.set_editor_property(
+                        'frame_import_range', rangeInterval
+                    )
+                else:
+                    task.options.anim_sequence_import_data.set_editor_property(
+                        'animation_length',
+                        ue.FBXAnimationLengthImportType.FBXALIT_EXPORTED_TIME,
+                    )
 
-            task.options.set_editor_property(
-                'skeleton', skeletonAD.get_asset())
+                task.options.set_editor_property(
+                    'skeleton', skeletonAD.get_asset())
             task.filename = fbx_path
             task.destination_path = import_path
 
@@ -805,10 +809,11 @@ class AnimationAsset(GenericAsset):
             asset = asset_data.get_asset()
             if str(asset.get_name()) == applicationObject:
                 task = self._get_asset_import_task(iAObj)
-                task.options.set_editor_property(
-                    'skeleton', asset.get_editor_property('skeleton')
-                )
                 task.filename = iAObj.filePath
+                if task.filename.endswith(".fbx"):
+                    task.options.set_editor_property(
+                        'skeleton', asset.get_editor_property('skeleton')
+                    )
                 task.destination_path = str(asset_data.package_path)
                 task.destination_name = str(asset_data.asset_name)
                 ue.AssetToolsHelpers.get_asset_tools().import_asset_tasks(

@@ -8,6 +8,12 @@ Release Notes
 *************
 
 
+.. release:: Upcoming
+
+    .. change:: Fix
+
+        Animation import settings are set by file format.
+
 .. release:: 1.0.1
     :date: 2020-09-10
 
