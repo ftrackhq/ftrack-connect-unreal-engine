@@ -3,8 +3,8 @@
 
 from QtExt import QtGui, QtCore, QtWidgets
 
-from ftrack_connect.ui.widget.info import FtrackInfoDialog
-from ftrack_connect.ui.theme import applyTheme
+from ftrack_connector_legacy.ui.widget.info import FtrackInfoDialog
+from ftrack_connector_legacy.ui.theme import applyTheme
 
 
 class FtrackUnrealInfoDialog(FtrackInfoDialog):

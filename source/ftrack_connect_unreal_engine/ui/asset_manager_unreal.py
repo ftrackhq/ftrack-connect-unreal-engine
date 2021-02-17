@@ -5,11 +5,11 @@ import sys
 
 from QtExt import QtCore, QtWidgets
 
-from ftrack_connect.ui.widget.asset_manager import (
+from ftrack_connector_legacy.ui.widget.asset_manager import (
     FtrackAssetManagerDialog,
     AssetManagerWidget,
 )
-from ftrack_connect.ui.theme import applyTheme
+from ftrack_connector_legacy.ui.theme import applyTheme
 
 
 class FtrackUnrealAssetManagerWidget(AssetManagerWidget):

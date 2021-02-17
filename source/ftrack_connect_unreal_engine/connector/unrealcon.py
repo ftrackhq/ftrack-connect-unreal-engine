@@ -4,16 +4,16 @@
 import os
 import uuid
 
-import ftrack_connect.config
-from ftrack_connect.connector import base as maincon
-from ftrack_connect.connector import FTAssetHandlerInstance
+import ftrack_connector_legacy.config
+from ftrack_connector_legacy.connector import base as maincon
+from ftrack_connector_legacy.connector import FTAssetHandlerInstance
 import sys
 import logging
 import argparse
 import signal
 import ftrack
 import ftrack_api
-import ftrack_connect.ui.theme
+import ftrack_connector_legacy.ui.theme
 
 import unreal as ue
 

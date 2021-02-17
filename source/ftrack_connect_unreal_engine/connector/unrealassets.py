@@ -17,7 +17,7 @@ import unrealcon
 
 from ftrack_connect_unreal_engine._version import __version__
 
-from ftrack_connect.connector import (
+from ftrack_connector_legacy.connector import (
     FTAssetHandlerInstance,
     FTAssetType,
     FTComponent,

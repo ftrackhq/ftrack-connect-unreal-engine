@@ -12,9 +12,9 @@ import ftrack
 import ftrack_api
 from ftrack_api import event
 from ftrack_connect import connector as ftrack_connector
-from ftrack_connect.ui.widget import header
-from ftrack_connect.ui.theme import applyTheme
-from ftrack_connect.ui.widget.context_selector import ContextSelector
+from ftrack_connector_legacy.ui.widget import header
+from ftrack_connector_legacy.ui.theme import applyTheme
+from ftrack_connector_legacy.ui.widget.context_selector import ContextSelector
 from ftrack_connect_unreal_engine.ui.export_asset_options_widget import (
     ExportAssetOptionsWidget,
 )

@@ -7,8 +7,8 @@ import logging
 
 import unreal
 import ftrack
-import ftrack_connect.config
-from ftrack_connect.ui.widget.import_asset import FtrackImportAssetDialog
+import ftrack_connector_legacy.config
+from ftrack_connector_legacy.ui.widget.import_asset import FtrackImportAssetDialog
 from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 from ftrack_connect_unreal_engine.ui.asset_manager_unreal import (
     FtrackUnrealAssetManagerDialog,
@@ -167,7 +167,7 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
             self.add_global_tag_in_asset_registry(tag)
 
         # Install the ftrack logging handlers
-        ftrack_connect.config.configure_logging(
+        ftrack_connector_legacy.config.configure_logging(
             'ftrack_connect_unreal_engine', level='INFO'
         )
 
