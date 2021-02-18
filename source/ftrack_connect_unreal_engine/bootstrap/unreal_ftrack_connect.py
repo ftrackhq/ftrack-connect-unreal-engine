@@ -16,8 +16,7 @@ from ftrack_connect_unreal_engine.ui.asset_manager_unreal import (
 from ftrack_connect_unreal_engine.ui.info import FtrackUnrealInfoDialog
 from ftrack_connect_unreal_engine.ui.tasks import FtrackTasksDialog
 from ftrack_connect_unreal_engine.ui.publisher import FtrackPublishDialog
-from QtExt import QtGui
-from QtExt.QtGui import QApplication
+from QtExt import QtGui, QtWidgets
 
 
 from ftrack_connect_unreal_engine.usage import send_event
@@ -156,9 +155,9 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
         ftrackContext.connector.registerAssets()
         ftrackContext.connector.setTimeLine()
 
-        app = QApplication.instance()
+        app = QtWidgets.QApplication.instance()
         if app is None:
-            app = QApplication([])
+            app = QtWidgets.QApplication([])
             app.setWindowIcon(
                 QtGui.QIcon(os.path.dirname(__file__) + '/UE4Ftrack.ico')
             )
@@ -175,8 +174,8 @@ class FTrackConnectWrapper(unreal.FTrackConnect):
 
     @unreal.ufunction(override=True)
     def shutdown(self):
-        QApplication.instance().quit()
-        QApplication.processEvents()
+        QtWidgets.QApplication.instance().quit()
+        QtWidgets.QApplication.processEvents()
 
     @unreal.ufunction(override=True)
     def get_ftrack_menu_items(self):

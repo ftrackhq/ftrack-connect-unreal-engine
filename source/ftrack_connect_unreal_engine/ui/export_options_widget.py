@@ -7,7 +7,7 @@ from QtExt import QtCore, QtWidgets, QtGui
 
 import ftrack
 from ftrack_connector_legacy.ui.widget.stacked_options import StackedOptionsWidget
-from ftrack_connect import connector as ftrack_connector
+from ftrack_connector_legacy import connector as ftrack_connector
 from ftrack_connect_unreal_engine.connector.unrealcon import (
     Connector as ue_connector,
 )

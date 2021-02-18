@@ -24,18 +24,14 @@ def on_discover_unreal_engine_integration(session, event):
     entity = event['data']['context']['selection'][0]
     task = session.get('Context', entity['entityId'])
 
-    ftrack_installation_path = os.path.dirname(sys.executable)
-    unreal_library = os.path.join(ftrack_installation_path, "library.zip")
-
     data = {
         'integration': {
             "name": 'ftrack-connect-unreal-engine',
             'version': integration_version,
             'env': {
                 'PYTHONPATH.prepend': os.path.pathsep.join(
-                    [ftrack_installation_path, unreal_library, sources]
+                    [sources]
                 ),
-                'QT_PLUGIN_PATH': ftrack_installation_path,
                 'QT_PREFERRED_BINDING': 'PySide',
                 'FTRACK_TASKID.set': task['id'],
                 'FTRACK_SHOTID.set': task['parent']['id'],

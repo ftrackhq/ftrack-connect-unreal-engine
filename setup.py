@@ -138,6 +138,9 @@ setup(
     install_requires=[
         'appdirs == 1.4.0',
         'ftrack-connector-legacy @ git+https://bitbucket.org/ftrack/ftrack-connector-legacy/get/1.0.0.zip#egg=ftrack-connector-legacy-1.0.0',
+        'qtext @ git+https://bitbucket.org/ftrack/qtext/get/0.2.2.zip#egg=QtExt-0.2.2',
+        'Qt.py >=1.0.0, < 2',
+        'PySide'
     ],
     tests_require=['pytest >= 2.3.5, < 3'],
     cmdclass={'test': PyTest, 'build_plugin': BuildPlugin},
