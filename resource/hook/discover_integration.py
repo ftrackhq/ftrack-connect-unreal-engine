@@ -58,12 +58,16 @@ def register(session):
     )
     session.event_hub.subscribe(
         'topic=ftrack.connect.application.launch'
-        ' and data.application.identifier=unreal-engine*',
+        ' and data.application.identifier=unreal-engine*'
+        ' and data.application.version <= 4.25',
+
         handle_event
     )
     
     session.event_hub.subscribe(
         'topic=ftrack.connect.application.discover'
-        ' and data.application.identifier=unreal-engine*',
+        ' and data.application.identifier=unreal-engine*'
+        ' and data.application.version <= 4.25',
+
         handle_event
     )
