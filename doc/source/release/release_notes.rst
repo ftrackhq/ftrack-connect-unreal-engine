@@ -7,8 +7,12 @@
 Release Notes
 *************
 
+.. release:: 1.1.0-beta-1
+    :date: 2021-03-12
 
-.. release:: Upcoming
+    .. change:: Changed
+
+        Update hook for application launcher.
 
     .. change:: Fix
 
