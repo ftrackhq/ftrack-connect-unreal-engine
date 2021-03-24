@@ -14,10 +14,6 @@ Release Notes
 
         ftrack toolbar icon not rendering when downloaded from marketplace.
 
-    .. change:: Changed
-
-        Unreal engine 4.26.0 plugin compatibility.
-
 
 .. release:: 1.1.0-beta-1
     :date: 2021-03-12
