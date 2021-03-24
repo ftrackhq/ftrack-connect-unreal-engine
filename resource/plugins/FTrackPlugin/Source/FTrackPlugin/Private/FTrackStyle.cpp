@@ -47,7 +47,6 @@ const FVector2D Icon40x40(40.0f, 40.0f);
 TUniquePtr< FSlateStyleSet > FFTrackStyle::Create()
 {
 	TUniquePtr< FSlateStyleSet > Style = MakeUnique<FSlateStyleSet>(GetStyleSetName());
-	// Assume plugin has been downloaded from marketplace
 	FString PluginDir = IPluginManager::Get().FindPlugin("FTrackPlugin")->GetBaseDir();
 	FString RPath(PluginDir / TEXT("Resources"));
 	UE_LOG(FTrackLog, Display, TEXT("Using ftrack resource path: %s."), *RPath);
