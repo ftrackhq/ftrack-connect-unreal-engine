@@ -10,7 +10,7 @@
     "DocsURL": "https://help.ftrack.com/en/articles/3998053-ftrack-connect-unreal-engine",
     "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/48fda5279b5d46038d37f8d884a0d889",
     "SupportURL": "",
-    "EngineVersion": "4.25.0",
+    "EngineVersion": "4.26.0",
     "EnabledByDefault": true,
     "CanContainContent": true,
     "IsBetaVersion": false,

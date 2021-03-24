@@ -5,6 +5,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/SlateStyle.h"
 #include "Styling/SlateStyleRegistry.h"
+#include "Interfaces/IPluginManager.h"
 
 TUniquePtr< FSlateStyleSet > FFTrackStyle::FTrackStyleInstance = nullptr;
 
@@ -46,7 +47,11 @@ const FVector2D Icon40x40(40.0f, 40.0f);
 TUniquePtr< FSlateStyleSet > FFTrackStyle::Create()
 {
 	TUniquePtr< FSlateStyleSet > Style = MakeUnique<FSlateStyleSet>(GetStyleSetName());
-	Style->SetContentRoot(FPaths::ProjectPluginsDir() / TEXT("FTrackPlugin/Resources"));
+	// Assume plugin has been downloaded from marketplace
+	FString PluginDir = IPluginManager::Get().FindPlugin("FTrackPlugin")->GetBaseDir();
+	FString RPath(PluginDir / TEXT("Resources"));
+	UE_LOG(FTrackLog, Display, TEXT("Using ftrack resource path: %s."), *RPath);
+	Style->SetContentRoot(RPath);
 
 	return Style;
 }
