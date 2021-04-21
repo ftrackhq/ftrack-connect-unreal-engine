@@ -8,7 +8,7 @@ Release Notes
 *************
 
 .. release:: upcoming
-    :date: 2021-03-24
+    :date:
 
     .. change:: Fix
 
