@@ -27,10 +27,6 @@ def on_discover_unreal_engine_integration(session, event):
 def on_launch_unreal_engine_integration(session, event):
     unreal_base_data = on_discover_unreal_engine_integration(session, event)
 
-    ftrack_connect_unreal_engine_resource_path = os.path.abspath(
-        os.path.join(cwd, '..',  'resource')
-    )
-
     unreal_base_data['integration']['env'] = {
         'PYTHONPATH.prepend': os.path.pathsep.join([sources]),
         'QT_PREFERRED_BINDING': 'PySide',
