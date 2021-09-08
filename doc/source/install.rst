@@ -24,7 +24,7 @@ copy the uncompressed folder in the **%FTRACK_CONNECT_PLUGIN_PATH%**
 You can find more information on how to locate it in the `ftrack help page <https://help.ftrack.com/connect/getting-started-with-connect/installing-and-using-connect>`_
 
 Building ftrack unreal project plugin
-----------------------------------
+-------------------------------------
 
 In case of a new version of Unreal Engine is released, and the plugin result incompatible, the plugin can be manually recopiled.
 The plugin sources are stored with the integration itself and available under the **'resource/plugins'** folder.
