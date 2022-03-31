@@ -4,9 +4,9 @@
 import getpass
 from QtExt import QtGui, QtCore, QtWidgets
 
-from ftrack_connect.ui.widget.web_view import WebViewWidget
-from ftrack_connect.ui.widget.header import Header
-from ftrack_connect.ui.theme import applyTheme
+from ftrack_connector_legacy.ui.widget.web_view import WebViewWidget
+from ftrack_connector_legacy.ui.widget.header import Header
+from ftrack_connector_legacy.ui.theme import applyTheme
 
 import ftrack
 

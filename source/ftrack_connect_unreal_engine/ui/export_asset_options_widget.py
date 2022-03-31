@@ -9,7 +9,7 @@ from QtExt import QtCore, QtWidgets, QtGui
 
 import ftrack
 import ftrack_api
-from ftrack_connect.connector import FTAssetHandlerInstance
+from ftrack_connector_legacy.connector import FTAssetHandlerInstance
 from ftrack_connect_unreal_engine.connector.unrealcon import Connector
 
 logger = logging.getLogger(__name__)

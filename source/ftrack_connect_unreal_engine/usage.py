@@ -2,7 +2,7 @@
 # :copyright: Copyright (c) 2020 ftrack
 
 import ftrack_connect_unreal_engine
-import ftrack_connect.usage
+import ftrack_connector_legacy.usage
 import platform
 
 
@@ -15,6 +15,6 @@ def send_event(event_name, metadata=None):
             'ftrack_connect_unreal_engine_version': ftrack_connect_unreal_engine.__version__
         }
 
-    ftrack_connect.usage.send_event(
+    ftrack_connector_legacy.usage.send_event(
         event_name, metadata
     )

@@ -17,13 +17,13 @@ import unrealcon
 
 from ftrack_connect_unreal_engine._version import __version__
 
-from ftrack_connect.connector import (
+from ftrack_connector_legacy.connector import (
     FTAssetHandlerInstance,
     FTAssetType,
     FTComponent,
     HelpFunctions,
 )
-from QtExt.QtGui import QMessageBox
+from QtExt import QtGui, QtWidgets
 
 
 class GenericAsset(FTAssetType):
@@ -495,15 +495,15 @@ class RigAsset(GenericAsset):
 
         importedAssetNames = []
         if ftrack_old_node != None:
-            msgBox = QMessageBox()
+            msgBox = QtWidgets.QMessageBox()
             msgBox.setText('This asset already exists in the project!')
             msgBox.setInformativeText("Do you want to reimport this asset?")
-            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            msgBox.setDefaultButton(QMessageBox.No)
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.No)
             ret = msgBox.exec_()
             old_node_name = str(ftrack_old_node.get_name())
 
-            if ret == QMessageBox.Yes:
+            if ret == QtWidgets.QMessageBox.Yes:
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
@@ -511,7 +511,7 @@ class RigAsset(GenericAsset):
                     'Changed version of existing asset ' + old_node_name
                 )
 
-            elif ret == QMessageBox.No:
+            elif ret == QtWidgets.QMessageBox.No:
                 self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
@@ -723,15 +723,15 @@ class AnimationAsset(GenericAsset):
 
         importedAssetNames = []
         if ftrack_old_node != None:
-            msgBox = QMessageBox()
+            msgBox = QtWidgets.QMessageBox()
             msgBox.setText('This asset already exists in the project!')
             msgBox.setInformativeText("Do you want to reimport this asset?")
-            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            msgBox.setDefaultButton(QMessageBox.No)
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.No)
             ret = msgBox.exec_()
             old_node_name = str(ftrack_old_node.get_name())
 
-            if ret == QMessageBox.Yes:
+            if ret == QtWidgets.QMessageBox.Yes:
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
@@ -739,7 +739,7 @@ class AnimationAsset(GenericAsset):
                     'Changed version of existing asset ' + old_node_name
                 )
 
-            elif ret == QMessageBox.No:
+            elif ret == QtWidgets.QMessageBox.No:
                 self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
@@ -930,15 +930,15 @@ class GeometryAsset(GenericAsset):
 
         importedAssetNames = []
         if ftrack_old_node != None:
-            msgBox = QMessageBox()
+            msgBox = QtWidgets.QMessageBox()
             msgBox.setText('This asset already exists in the project!')
             msgBox.setInformativeText("Do you want to reimport this asset?")
-            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            msgBox.setDefaultButton(QMessageBox.No)
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+            msgBox.setDefaultButton(QtWidgets.QMessageBox.No)
             ret = msgBox.exec_()
             old_node_name = str(ftrack_old_node.get_name())
 
-            if ret == QMessageBox.Yes:
+            if ret == QtWidgets.QMessageBox.Yes:
                 # Delete old asset
                 self.changeVersion(iAObj, old_node_name)
                 importedAssetNames.append(old_node_name)
@@ -946,7 +946,7 @@ class GeometryAsset(GenericAsset):
                     'Changed version of existing asset ' + old_node_name
                 )
 
-            elif ret == QMessageBox.No:
+            elif ret == QtWidgets.QMessageBox.No:
                 self.logger.info(
                     'Not changing version of existing asset ' + old_node_name
                 )
